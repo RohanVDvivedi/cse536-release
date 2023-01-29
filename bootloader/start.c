@@ -109,7 +109,7 @@ start()
   sys_info_ptr->arch = r_marchid();
   sys_info_ptr->impl = r_mimpid();
   sys_info_ptr->bl_start = 0x80000000;
-  sys_info_ptr->bl_end = ebss;
+  sys_info_ptr->bl_end = end;
   sys_info_ptr->dr_start = KERNBASE;
   sys_info_ptr->dr_end = PHYSTOP;
 
