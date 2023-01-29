@@ -35,6 +35,8 @@ void            panic(char *s);
 uint64          find_kernel_load_addr(void);
 uint64          find_kernel_entry_addr(void);
 uint64          find_kernel_size(void);
+uint64          find_kernel_load_file_offset(void);
+uint64          find_kernel_bss_size(void);
 
 
 // CSE 536: Tracking the end of various sections

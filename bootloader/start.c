@@ -58,14 +58,17 @@ start()
   // CSE 536: Task 2.4
   //  Enable R/W/X access to all parts of the address space, 
   //  except for the upper 10 MB (0 - 117 MB) using PMP
-  w_pmpaddr0(0x0ull); 
-  w_pmpcfg0(0x0);
+  w_pmpaddr0((0x80000000ULL + (117ULL * 1024ULL * 1024ULL))>>2); 
+  w_pmpcfg0(0xfULL);
 
   // CSE 536: Task 2.5
   // Load the kernel binary to its correct location
   uint64 kernel_entry_addr = 0;
   uint64 kernel_load_addr  = 0;
   uint64 kernel_size       = 0;
+
+  // address of the kernel to copy from
+  uint64 kernel_load_file_offset = find_kernel_load_file_offset();
 
   // CSE 536: Task 2.5.1
   // Find the loading address of the kernel binary
@@ -74,14 +77,43 @@ start()
   // CSE 536: Task 2.5.2
   // Find the kernel binary size and copy it to the load address
   kernel_size       = find_kernel_size();
+  // kernel_size is the size of the kernel without its bss section
+
+  // load kernel to desired address
+  for(uint64 off = 0; off < kernel_size;)
+  {
+    struct buf b= {};
+    b.blockno = (kernel_load_file_offset + off) / BSIZE;
+    kernel_copy(&b);
+    #define min(a,b) ((a)<(b))?(a):(b)
+    uint to_copy = min(BSIZE, kernel_size - off);
+    memmove((void*)(kernel_load_addr + off), b.data, to_copy);
+    off+=to_copy;
+  }
+
+  // get bss size of the kernel
+  uint64 kernel_bss_size       = find_kernel_bss_size();
+
+  // set bss for the kernel to all 0s
+  memset((void*)(kernel_load_addr + kernel_size), 0, kernel_bss_size);
 
   // CSE 536: Task 2.5.3
   // Find the entry address and write it to mepc
   kernel_entry_addr = find_kernel_entry_addr();
+  w_mepc(kernel_entry_addr);
 
   // CSE 536: Task 2.6
   // Provide system information to the kernel
+  sys_info_ptr = (void*)(0x80080000);
+  sys_info_ptr->vendor = r_mvendorid();
+  sys_info_ptr->arch = r_marchid();
+  sys_info_ptr->impl = r_mimpid();
+  sys_info_ptr->bl_start = 0x80000000;
+  sys_info_ptr->bl_end = ebss;
+  sys_info_ptr->dr_start = KERNBASE;
+  sys_info_ptr->dr_end = PHYSTOP;
 
   // CSE 536: Task 2.5.3
   // Jump to the OS kernel code
+  asm volatile("mret");
 }

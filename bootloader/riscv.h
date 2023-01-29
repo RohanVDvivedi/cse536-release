@@ -340,6 +340,30 @@ r_ra()
   return x;
 }
 
+static inline uint64
+r_mvendorid()
+{
+  uint64 x;
+  asm volatile("csrr %0, mvendorid" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
+r_marchid()
+{
+  uint64 x;
+  asm volatile("csrr %0, marchid" : "=r" (x) );
+  return x;
+}
+
+static inline uint64
+r_mimpid()
+{
+  uint64 x;
+  asm volatile("csrr %0, mimpid" : "=r" (x) );
+  return x;
+}
+
 // flush the TLB.
 static inline void
 sfence_vma()
