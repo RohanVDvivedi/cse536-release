@@ -84,7 +84,12 @@ void page_fault_handler(void)
     print_page_fault(p->name, faulting_addr);
 
     /* Check if the fault address is a heap page. Use p->heap_tracker */
-    if (0/*true*/) {
+    int is_heap_page = 0;
+    for(int i = 0; i < MAXHEAP && is_heap_page == 0; i++)
+        if(faulting_addr == p->heap_tracker[i].addr)
+            is_heap_page = 1;
+
+    if (is_heap_page) {
         goto heap_handle;
     }
 
