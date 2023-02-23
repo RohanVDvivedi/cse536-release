@@ -79,16 +79,59 @@ void page_fault_handler(void)
     bool load_from_disk = false;
 
     /* Find faulting address. */
-    uint64 faulting_addr = 0;
+    uint64 faulting_addr = r_stval();
+    faulting_addr = PGROUNDDOWN(faulting_addr);
     print_page_fault(p->name, faulting_addr);
 
     /* Check if the fault address is a heap page. Use p->heap_tracker */
-    if (true) {
+    if (0/*true*/) {
         goto heap_handle;
     }
 
+    // varibales to load the correct segment
+    struct elfhdr elf;
+    struct inode *ip;
+    struct proghdr ph;
+    pagetable_t pagetable = p->pagetable;
+
+    // get inode from the executable path and lock it
+    ip = namei(p->name);
+    ilock(ip);
+
+    // read elf header
+    readi(ip, 0, (uint64)&elf, 0, sizeof(elf));
+
+    // iterate over all the program headers, to find the right one
+    for(int i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
+        // read the ith program header
+        readi(ip, 0, (uint64)&ph, off, sizeof(ph));
+
+        // if not loadable continue
+        if(ph.type != ELF_PROG_LOAD)
+            continue;
+
+        // check if the address lies in the address range of program header
+        if(ph.vaddr <= faulting_addr && faulting_addr < ph.vaddr + ph.memsz)
+        {
+            // uvmalloc a page worth of memory for this faulting page
+            uvmalloc(pagetable, faulting_addr, faulting_addr + PGSIZE, flags2perm(ph.flags));
+
+            // load the segment only if the page requested has contents on the file, i.e. is not an only bss section
+            if(ph.vaddr <= faulting_addr && faulting_addr < ph.vaddr + ph.filesz) {
+                // calucate the offset and size to read from, in the program segment, and read it
+                uint off_in_ph = ph.off + (faulting_addr - ph.vaddr);
+                #define min(a,b) (((a)<(b))?(a):(b))
+                uint sz_in_ph = min(PGSIZE, ph.vaddr + ph.filesz - faulting_addr);
+                loadseg(pagetable, faulting_addr, ip, off_in_ph, sz_in_ph);
+            }
+            break;
+        }
+    }
+
+    iunlockput(ip);
+
     /* If it came here, it is a page from the program binary that we must load. */
-    print_load_seg(faulting_addr, 0, 0);
+    print_load_seg(faulting_addr, ph.vaddr, ph.memsz);
 
     /* Go to out, since the remainder of this code is for the heap. */
     goto out;
