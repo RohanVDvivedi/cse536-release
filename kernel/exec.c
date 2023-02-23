@@ -33,6 +33,10 @@ exec(char *path, char **argv)
   struct proc *p = myproc();
 
   /* CSE 536: (2.1) Check on-demand status. */
+  p->ondemand = true;
+  if(strncmp(path, "sh", 4) == 0 || strncmp(path, "/init", 6) == 0)
+    p->ondemand = false;
+
   if (p->ondemand == true) {
     print_ondemand_proc(path);
   }
@@ -67,6 +71,13 @@ exec(char *path, char **argv)
       goto bad;
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
+
+    if(p->ondemand) {
+      print_skip_section(path, ph.vaddr, ph.memsz);
+      #define max(a,b) (((a)>(b))?(a):(b))
+      sz = max(sz, ph.vaddr + ph.memsz);
+      continue;
+    }
 
     uint64 sz1;
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
