@@ -269,6 +269,21 @@ void track_heap(struct proc* p, uint64 start, int npages) {
   panic("Error: No more process heap pages allowed.\n");
 }
 
+// untrack all heap pages at and beyond (address >= new_end)
+void untrack_heap(struct proc* p, uint64 new_end)
+{
+  for (int i = 0; i < MAXHEAP; i++) {
+    if (p->heap_tracker[i].addr != 0xFFFFFFFFFFFFFFFF && p->heap_tracker[i].addr >= new_end) {
+      p->heap_tracker[i].addr            = 0xFFFFFFFFFFFFFFFF;
+      p->heap_tracker[i].startblock      = -1;
+      p->heap_tracker[i].last_load_time  = 0xFFFFFFFFFFFFFFFF;
+      p->heap_tracker[i].loaded          = false;
+
+      // realease swap copy of this page
+    } 
+  }
+}
+
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
 int
@@ -298,6 +313,11 @@ growproc(int n)
     }
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
+    if(p->ondemand)
+    {
+      uint64 new_end = PGROUNDUP(sz);
+      untrack_heap(p, new_end);
+    }
   }
   p->sz = sz;
   return 0;
