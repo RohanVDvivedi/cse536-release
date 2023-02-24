@@ -101,7 +101,7 @@ void evict_page_to_disk(struct proc* p) {
     /* Find free block */
 
     // find all used psa blocks
-    int used_psa_blocks[MAXRESHEAP];
+    int used_psa_blocks[(PSASIZE * BSIZE) / PGSIZE]; // this array should be of size = maximum pages that can reside in PSA = 250
     int used_psa_blocks_count = 0;
     for(int i = 0; i < MAXHEAP; i++)
         // conditions for a page to be allocated and not in RAM (saved in PSA)
