@@ -35,7 +35,7 @@ void init_psa_regions(void)
 }
 
 // utility qsort
-void qsort(int* arr, int size)
+static void qsort(int* arr, int size)
 {
     if(size <= 1)
         return;
@@ -52,6 +52,28 @@ void qsort(int* arr, int size)
     }
     qsort(arr, --j);
     qsort(arr + j + 1, size - j - 1);
+}
+
+// returns heap_tracker index for the heap page that should be evicted for FIFO policy
+static int find_victim_for_eviction_FIFO_policy(struct proc* p)
+{
+    int heap_tracker_index_victim = -1;
+    uint64 last_load_time_victim = -1; // this -1 will set it to UINT64_MAX
+    for(int i = 0; i < MAXHEAP; i++)
+    {
+        // conditions for a page being allocated and loaded in RAM (and not on PSA)
+        if( p->heap_tracker[i].addr != 0xFFFFFFFFFFFFFFFF && 
+            p->heap_tracker[i].loaded == 1 && 
+            p->heap_tracker[i].startblock == -1)
+        {
+            if(last_load_time_victim > p->heap_tracker[i].last_load_time)
+            {
+                heap_tracker_index_victim = i;
+                last_load_time_victim = p->heap_tracker[i].last_load_time;
+            }
+        }
+    }
+    return heap_tracker_index_victim;
 }
 
 /* Evict heap page to disk when resident pages exceed limit */
@@ -78,22 +100,7 @@ void evict_page_to_disk(struct proc* p) {
     // after the above loop we will have a valid blockno to write a page into
 
     /* Find victim page using FIFO. */
-    int heap_tracker_index_victim = -1;
-    uint64 last_load_time_victim = -1; // this -1 will set it to UINT64_MAX
-    for(int i = 0; i < MAXHEAP; i++)
-    {
-        // conditions for a page being allocated and loaded in RAM (and not on PSA)
-        if( p->heap_tracker[i].addr != 0xFFFFFFFFFFFFFFFF && 
-            p->heap_tracker[i].loaded == 1 && 
-            p->heap_tracker[i].startblock == -1)
-        {
-            if(last_load_time_victim > p->heap_tracker[i].last_load_time)
-            {
-                heap_tracker_index_victim = i;
-                last_load_time_victim = p->heap_tracker[i].last_load_time;
-            }
-        }
-    }
+    int heap_tracker_index_victim = find_victim_for_eviction_FIFO_policy(p);
 
     /* Print statement. */
     print_evict_page(p->heap_tracker[heap_tracker_index_victim].addr, blockno);
