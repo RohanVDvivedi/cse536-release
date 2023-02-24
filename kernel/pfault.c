@@ -62,8 +62,8 @@ void evict_page_to_disk(struct proc* p) {
 
     // iterate over all blocks in multiples of PGSIZE/BSIZE, and check if it is occupied by any heap page
     // this is inefficient solution, but has very low space requirement, hence avoiding stackoverflow.
-    int blockno = PSASTART;
-    for(; blockno <= PSAEND; blockno += (PGSIZE/BSIZE))
+    int blockno = 0;
+    for(; blockno < PSASIZE; blockno += (PGSIZE/BSIZE))
     {
         int found = 0;
         for(int i = 0; i < MAXHEAP; i++)
