@@ -34,46 +34,6 @@ void init_psa_regions(void)
         psa_tracker[i] = false;
 }
 
-// utility qsort
-static void qsort(int* arr, int size)
-{
-    if(size <= 1)
-        return;
-    int p = arr[size-1];
-    int j = 0;
-    for(int i = 0; i < size; i++)
-    {
-        if(arr[i] <= p)
-        {
-            int t = arr[i];
-            arr[i] = arr[j];
-            arr[j++] = t;
-        }
-    }
-    qsort(arr, --j);
-    qsort(arr + j + 1, size - j - 1);
-}
-
-// utility bubblesort
-static void bubblesort(int* arr, int size)
-{
-    if(size <= 1)
-        return;
-    for(;size > 1; size--)
-    {
-        for(int i = 0; i < size - 1; i++)
-        {
-            int j = i + 1;
-            if(arr[i] > arr[j])
-            {
-                int t = arr[i];
-                arr[i] = arr[j];
-                arr[j] = t;
-            }
-        }
-    }
-}
-
 // returns heap_tracker index for the heap page that should be evicted for FIFO policy
 static int find_victim_for_eviction_FIFO_policy(struct proc* p)
 {
@@ -100,28 +60,27 @@ static int find_victim_for_eviction_FIFO_policy(struct proc* p)
 void evict_page_to_disk(struct proc* p) {
     /* Find free block */
 
-    // find all used psa blocks
-    int used_psa_blocks[(PSASIZE * BSIZE) / PGSIZE]; // this array should be of size = maximum pages that can reside in PSA = 250
-    int used_psa_blocks_count = 0;
-    for(int i = 0; i < MAXHEAP; i++)
-        // conditions for a page to be allocated and not in RAM (saved in PSA)
-        if( p->heap_tracker[i].addr != 0xFFFFFFFFFFFFFFFF && 
-            p->heap_tracker[i].loaded == 0 && 
-            p->heap_tracker[i].startblock != -1)
-            used_psa_blocks[used_psa_blocks_count++] = p->heap_tracker[i].startblock;
-
-    // sort used psa blocks
-    //qsort(used_psa_blocks, used_psa_blocks_count);
-    bubblesort(used_psa_blocks, used_psa_blocks_count);
-
-    // 3 (in place) sorting algos can be chosen to be used above
-    // heapsort (too complicated in 1 file)
-    // qsort (tested it, it gives stack overflow)
-    // bubblesort (easy, inplace and iterative, hence my choice)
-
-    // iterate over PSA
+    // iterate over all blocks in multiples of PGSIZE/BSIZE, and check if it is occupied by any heap page
+    // this is inefficient solution, but has very low space requirement, hence avoiding stackoverflow.
     int blockno = PSASTART;
-    for(int i = 0; blockno <= PSAEND && i < used_psa_blocks_count && blockno == used_psa_blocks[i]; blockno+=4, i++);
+    for(; blockno <= PSAEND; blockno += (PGSIZE/BSIZE))
+    {
+        int found = 0;
+        for(int i = 0; i < MAXHEAP; i++)
+        {
+            // conditions for a page to be allocated and not in RAM (saved in PSA at blockno)
+            if( p->heap_tracker[i].addr != 0xFFFFFFFFFFFFFFFF && 
+            p->heap_tracker[i].loaded == 0 && 
+            p->heap_tracker[i].startblock == blockno)
+            {
+                found = 1;
+                break;
+            }
+        }
+        if(!found)
+            break;
+    }
+    
 
     // after the above loop we will have a valid blockno to write a page into
 
@@ -254,7 +213,7 @@ void page_fault_handler(void)
     iunlockput(ip);
 
     /* If it came here, it is a page from the program binary that we must load. */
-    print_load_seg(faulting_addr, ph.vaddr, ph.memsz);
+    print_load_seg(faulting_addr, ph.off, ph.memsz);
 
     /* Go to out, since the remainder of this code is for the heap. */
     goto out;
