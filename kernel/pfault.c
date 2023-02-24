@@ -148,6 +148,7 @@ heap_handle:
     }
 
     /* 2.3: Map a heap page into the process' address space. (Hint: check growproc) */
+    uvmalloc(p->pagetable, faulting_addr, faulting_addr + PGSIZE, PTE_W);
 
     /* 2.4: Update the last load time for the loaded heap page in p->heap_tracker. */
 
