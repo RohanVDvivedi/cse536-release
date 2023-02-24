@@ -54,6 +54,26 @@ static void qsort(int* arr, int size)
     qsort(arr + j + 1, size - j - 1);
 }
 
+// utility bubblesort
+static void bubblesort(int* arr, int size)
+{
+    if(size <= 1)
+        return;
+    for(;size > 1; size--)
+    {
+        for(int i = 0; i < size - 1; i++)
+        {
+            int j = i + 1;
+            if(arr[i] > arr[j])
+            {
+                int t = arr[i];
+                arr[i] = arr[j];
+                arr[j] = t;
+            }
+        }
+    }
+}
+
 // returns heap_tracker index for the heap page that should be evicted for FIFO policy
 static int find_victim_for_eviction_FIFO_policy(struct proc* p)
 {
@@ -91,7 +111,13 @@ void evict_page_to_disk(struct proc* p) {
             used_psa_blocks[used_psa_blocks_count++] = p->heap_tracker[i].startblock;
 
     // sort used psa blocks
-    qsort(used_psa_blocks, used_psa_blocks_count);
+    //qsort(used_psa_blocks, used_psa_blocks_count);
+    bubblesort(used_psa_blocks, used_psa_blocks_count);
+
+    // 3 (in place) sorting algos can be chosen to be used above
+    // heapsort (too complicated in 1 file)
+    // qsort (tested it, it gives stack overflow)
+    // bubblesort (easy, inplace and iterative, hence my choice)
 
     // iterate over PSA
     int blockno = PSASTART;
