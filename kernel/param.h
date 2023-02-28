@@ -11,12 +11,12 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 // #define FSSIZE       2000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
-#define FSSIZE       3000  // size of file system in blocks
+#define FSSIZE       6000  // size of file system in blocks
 
 /* CSE 536: changed to 3000 to use the last 1000 blocks for page swapping. */
 #define PSASTART                33       // Starting page save area (PSA) block
-#define PSAEND                  1032     // Ending page save area (PSA) block
-#define PSASIZE                 1000     // total size of the PSA
+#define PSAEND                  4032     // Ending page save area (PSA) block
+#define PSASIZE                 4000     // total size of the PSA
 
 /* CSE 536: heap-related definitions. */
 #define MAXHEAP                 1000     // maximum pages for heap allocation
