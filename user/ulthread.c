@@ -9,6 +9,32 @@
 #include <stdbool.h>
 #include <stddef.h> 
 
+#include<ulthread.h>
+
+typedef struct ulthread_proc ulthread_proc;
+struct ulthread_proc
+{
+    uint64 sp;
+    uint64 s0_s11[12];
+    uint64 f8_f9[2];
+    uint64 f18_f27[10];
+    uint64 ra;
+    ulthread_state state;
+};
+
+typedef struct ulthreading_manager ulthreading_manager;
+struct ilthreading_manager
+{
+    ulthread_scheduling_algorithm sch_algo;
+
+    // context of the scheduler thread
+    ulthread_proc sch_thread;
+
+    // context of user level threads created and managed by sch_thread
+    ulthread_proc** ulthreads;
+    uint64 ulthreads_count;
+};
+
 /* Get thread ID */
 int get_current_tid(void) {
     return 0;
