@@ -19,11 +19,14 @@ struct ulthread_proc
     uint64 f8_f9[2];
     uint64 f18_f27[10];
     uint64 ra;
+
+    uint64 arg;
+
     ulthread_state state;
 };
 
 typedef struct ulthreading_manager ulthreading_manager;
-struct ilthreading_manager
+struct ulthreading_manager
 {
     ulthread_scheduling_algorithm sch_algo;
 
@@ -35,13 +38,22 @@ struct ilthreading_manager
     uint64 ulthreads_count;
 };
 
+ulthreading_manager ulmgr;
+
+void ulthread_context_switch(ulthread_proc* store, ulthread_proc* restore);
+
 /* Get thread ID */
 int get_current_tid(void) {
     return 0;
 }
 
 /* Thread initialization */
-void ulthread_init(int schedalgo) {}
+void ulthread_init(int schedalgo) {
+    ulmgr.sch_algo = schedalgo;
+    ulmgr.sch_thread = (ulthread_proc){};
+    ulmgr.ulthreads = NULL;
+    ulmgr.ulthreads_count = 0;
+}
 
 /* Thread creation */
 bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
