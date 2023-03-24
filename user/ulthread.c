@@ -78,19 +78,25 @@ static void* realloc(void* old_mem, uint64 old_size, uint64 new_size)
     return new_mem;
 }
 
+static int assign_or_allocate_new_ulthreads_proc()
+{
+    int new_thread_id = 0;
+    for(; new_thread_id < ulmgr.ulthreads_count && ulmgr.ulthreads[new_thread_id].state != FREE; new_thread_id++);
+    if(new_thread_id < ulmgr.ulthreads_count)
+        return new_thread_id;
+    
+    ulmgr.ulthreads = realloc(ulmgr.ulthreads, ulmgr.ulthreads_count * sizeof(ulthread_proc), (ulmgr.ulthreads_count + 1) * sizeof(ulthread_proc));
+    ulmgr.ulthreads_count += 1;
+
+    return new_thread_id;
+}
+
 /* Thread creation */
 bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
     /* Please add thread-id instead of '0' here. */
     
     // get a new thread id for the new thread
-    int new_thread_id = ulmgr.ulthreads_count;
-
-    // expand ulmgr.ulthreads
-    void* new_ulmgr_ulthreads = realloc(ulmgr.ulthreads, ulmgr.ulthreads_count * sizeof(ulthread_proc), (ulmgr.ulthreads_count + 1) * sizeof(ulthread_proc));
-    if(new_ulmgr_ulthreads == NULL)
-        return false;
-    ulmgr.ulthreads = new_ulmgr_ulthreads;
-    ulmgr.ulthreads_count += 1;
+    int new_thread_id = assign_or_allocate_new_ulthreads_proc();
 
     ulmgr.ulthreads[new_thread_id].priority = priority;
     ulmgr.ulthreads[new_thread_id].state = RUNNABLE;
@@ -119,9 +125,21 @@ void ulthread_schedule(void) {
 /* Yield CPU time to some other thread. */
 void ulthread_yield(void) {
 
+    int tid = get_current_tid();
+
+    ulmgr.ulthreads[tid].state = YIELD;
+
     /* Please add thread-id instead of '0' here. */
-    printf("[*] ultyield(tid: %d)\n", 0);
+    printf("[*] ultyield(tid: %d)\n", tid);
+
+    ulthread_context_switch(ulmgr.ulthreads + tid, &(ulmgr.sch_thread));
 }
 
 /* Destroy thread */
-void ulthread_destroy(void) {}
+void ulthread_destroy(void) {
+    int tid = get_current_tid();
+
+    ulmgr.ulthreads[tid].state = FREE;
+
+    ulthread_context_switch(ulmgr.ulthreads + tid, &(ulmgr.sch_thread));
+}
