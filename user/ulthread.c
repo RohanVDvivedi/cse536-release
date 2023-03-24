@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <stddef.h> 
 
-#include<ulthread.h>
+#include "ulthread.h"
 
 #include "kernel/riscv.h"
 
@@ -47,16 +47,17 @@ void ulthread_context_switch(ulthread_proc* store, ulthread_proc* restore);
 
 static uint64 get_sp(void) {
     asm("\
-        mov a0, sp;\
+        mv a0, sp;\
         ret;\
     ");
+    return 0;
 }
 
 /* Get thread ID */
 /* the thread id is stored on to the stack as the first value */
 int get_current_tid(void) {
     uint64 this_sp = get_sp();
-    return *((uint64*)(PGGROUNDUP(this_sp) - 8));
+    return *((uint64*)(PGROUNDUP(this_sp) - 8));
 }
 
 /* Thread initialization */
@@ -105,7 +106,7 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
 
     ulmgr.ulthreads[new_thread_id].sp = stack + PGSIZE;
     ulmgr.ulthreads[new_thread_id].ra = start;
-    ulmgr.ulthreads[new_thread_id].a0 = args;
+    ulmgr.ulthreads[new_thread_id].a0 = ((uint64)args);
     ulmgr.ulthreads[new_thread_id].sp -= 8;
     *((uint64*)(ulmgr.ulthreads[new_thread_id].sp)) = new_thread_id;
 
