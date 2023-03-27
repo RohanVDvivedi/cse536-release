@@ -19,4 +19,11 @@ enum ulthread_scheduling_algorithm {
   FCFS,         // first-come-first serve
 };
 
+int get_current_tid(void);
+void ulthread_init(int schedalgo);
+bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority);
+void ulthread_schedule(void);
+void ulthread_yield(void);
+void ulthread_destroy(void);
+
 #endif
