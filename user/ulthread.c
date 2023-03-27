@@ -20,11 +20,14 @@ struct ulthread_proc
     uint64 sp;
     uint64 s0_s11[12];
 
+    // set it to argument of the function
     uint64 a0;
 
     int priority;
 
     ulthread_state state;
+
+    int tid;
 };
 
 typedef struct ulthreading_manager ulthreading_manager;
@@ -100,6 +103,7 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
 
     ulmgr.ulthreads[new_thread_id].priority = priority;
     ulmgr.ulthreads[new_thread_id].state = RUNNABLE;
+    ulmgr.ulthreads[new_thread_id].tid = new_thread_id;
 
     printf("[*] ultcreate(tid: %d, ra: %p, sp: %p)\n", new_thread_id, start, stack);
 

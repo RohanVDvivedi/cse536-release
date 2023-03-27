@@ -30,4 +30,8 @@ ulthread_context_switch:
         ld s10, 96(a1)
         ld s11, 104(a1)
 
+        # this might be the first call to the thread, in that case we need to set its argument parameter
+        # in anyother case it is equivalent to a no-op
+        ld a0, 112(a1)
+
         ret
