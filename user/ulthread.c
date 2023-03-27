@@ -81,6 +81,9 @@ void ulthread_init(int schedalgo) {
     ulmgr.ulthreads_count += 1;
 
     ulmgr.ulthreads[0] = (ulthread_proc){.state = RUNNABLE};
+
+    ulmgr.tid_running = 0;
+    ulmgr.tid_last_ran = 0;
 }
 
 static int assign_or_allocate_new_ulthreads_proc()
@@ -126,7 +129,9 @@ static int get_next_thread_to_run_ROUNDROBIN()
 
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
-        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
+        if(tid == SCHEDULING_THREAD_TID)
+            continue;
         if(ulmgr.ulthreads[tid].state == RUNNABLE)
         {
             next_tid = tid;
@@ -145,7 +150,9 @@ static int get_next_thread_to_run_ROUNDROBIN()
     
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
-        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
+        if(tid == SCHEDULING_THREAD_TID)
+            continue;
         if(ulmgr.ulthreads[tid].state == RUNNABLE)
         {
             next_tid = tid;
@@ -162,7 +169,9 @@ static int get_next_thread_to_run_PRIORITY()
 
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
-        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
+        if(tid == SCHEDULING_THREAD_TID)
+            continue;
         if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority))
             next_tid = tid;
     }
@@ -178,7 +187,9 @@ static int get_next_thread_to_run_PRIORITY()
     
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
-        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
+        if(tid == SCHEDULING_THREAD_TID)
+            continue;
         if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority))
             next_tid = tid;
     }
@@ -224,7 +235,7 @@ while(1) {
 
     // set the value to the next thread that will be run
     ulmgr.tid_running = next_tid;
-    ulmgr.ulthread_tid_last_ran = next_tid;
+    ulmgr.tid_last_ran = next_tid;
 
     // Switch between thread contexts
     ulthread_context_switch(ulmgr.ulthreads + SCHEDULING_THREAD_TID, ulmgr.ulthreads + next_tid);
@@ -257,6 +268,8 @@ void ulthread_destroy(void) {
         return;
 
     ulmgr.ulthreads[tid].state = FREE;
+
+    printf("[*] ultdestroy(tid: %d)\n", tid);
 
     ulmgr.tid_running = 0;
     ulthread_context_switch(ulmgr.ulthreads + tid, ulmgr.ulthreads + SCHEDULING_THREAD_TID);
