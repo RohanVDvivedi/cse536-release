@@ -26,6 +26,8 @@ struct ulthread_proc
     int priority;
 
     ulthread_state state;
+
+    uint64 created_at;
 };
 
 #define SCHEDULING_THREAD_TID 0
@@ -108,6 +110,7 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
 
     ulmgr.ulthreads[new_thread_id].priority = priority;
     ulmgr.ulthreads[new_thread_id].state = RUNNABLE;
+    ulmgr.ulthreads[new_thread_id].created_at = ctime();
 
     printf("[*] ultcreate(tid: %d, ra: %p, sp: %p)\n", new_thread_id, start, stack);
 
