@@ -41,6 +41,9 @@ struct ulthreading_manager
     // context of user level threads created and managed by sch_thread
     ulthread_proc* ulthreads;
     uint64 ulthreads_count;
+
+    // tid of the thread currently running or the one that ran last
+    int tid_running;
 };
 
 ulthreading_manager ulmgr;
@@ -116,14 +119,64 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
     return false;
 }
 
+/*
+    get_next_thread_to_run_* () will return the tid of the thread that should be run next
+    else it will return -1 (an indication to quit the loop)
+*/
+
+static int get_next_thread_to_run_ROUNDROBIN()
+{
+    return -1;
+}
+
+static int get_next_thread_to_run_PRIORITY()
+{
+    return -1;
+}
+
+static int get_next_thread_to_run_FCFS()
+{
+    return -1;
+}
+
 /* Thread scheduler */
 void ulthread_schedule(void) {
+
+while(1) {
+    int next_tid;
+
+    switch(ulmgr.sch_algo)
+    {
+        case ROUNDROBIN :
+        {
+            next_tid = get_next_thread_to_run_ROUNDROBIN();
+            break;
+        }
+        case PRIORITY :
+        {
+            next_tid = get_next_thread_to_run_PRIORITY();
+            break;
+        }
+        case FCFS :
+        {
+            next_tid = get_next_thread_to_run_FCFS();
+            break;
+        }
+    }
+
+    if(next_tid == -1)
+        break;
     
     /* Add this statement to denote which thread-id is being scheduled next */
-    printf("[*] ultschedule (next tid: %d)\n", 0);
+    printf("[*] ultschedule (next tid: %d)\n", next_tid);
+
+    // set the value to the next thread that will be run
+    ulmgr.tid_running = next_tid;
 
     // Switch between thread contexts
-    ulthread_context_switch(NULL, NULL);
+    ulthread_context_switch(&(ulmgr.sch_thread), ulmgr.ulthreads + next_tid);
+}
+
 }
 
 /* Yield CPU time to some other thread. */
