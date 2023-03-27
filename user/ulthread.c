@@ -26,24 +26,25 @@ struct ulthread_proc
     int priority;
 
     ulthread_state state;
-
-    int tid;
 };
+
+#define SCHEDULING_THREAD_TID 0
 
 typedef struct ulthreading_manager ulthreading_manager;
 struct ulthreading_manager
 {
     ulthread_scheduling_algorithm sch_algo;
 
-    // context of the scheduler thread
-    ulthread_proc sch_thread;
-
     // context of user level threads created and managed by sch_thread
+    // tid = 0, is reserved for scheduler thread
     ulthread_proc* ulthreads;
     uint64 ulthreads_count;
 
-    // tid of the thread currently running or the one that ran last
+    // tid of the thread currently running
     int tid_running;
+
+    // last context of ulthreads that ran last, before the scheduler thread
+    int tid_last_ran;
 };
 
 ulthreading_manager ulmgr;
@@ -54,14 +55,6 @@ void ulthread_context_switch(ulthread_proc* store, ulthread_proc* restore);
 /* the thread id is stored on to the stack as the first value */
 int get_current_tid(void) {
     return ulmgr.tid_running;
-}
-
-/* Thread initialization */
-void ulthread_init(int schedalgo) {
-    ulmgr.sch_algo = schedalgo;
-    ulmgr.sch_thread = (ulthread_proc){};
-    ulmgr.ulthreads = NULL;
-    ulmgr.ulthreads_count = 0;
 }
 
 static void* realloc(void* old_mem, uint64 old_size, uint64 new_size)
@@ -76,6 +69,18 @@ static void* realloc(void* old_mem, uint64 old_size, uint64 new_size)
     if(old_mem != NULL && old_size > 0)
         free(old_mem);
     return new_mem;
+}
+
+/* Thread initialization */
+void ulthread_init(int schedalgo) {
+    ulmgr.sch_algo = schedalgo;
+    ulmgr.ulthreads = NULL;
+    ulmgr.ulthreads_count = 0;
+
+    ulmgr.ulthreads = realloc(ulmgr.ulthreads, ulmgr.ulthreads_count * sizeof(ulthread_proc), (ulmgr.ulthreads_count + 1) * sizeof(ulthread_proc));
+    ulmgr.ulthreads_count += 1;
+
+    ulmgr.ulthreads[0] = (ulthread_proc){.state = RUNNABLE};
 }
 
 static int assign_or_allocate_new_ulthreads_proc()
@@ -100,7 +105,6 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
 
     ulmgr.ulthreads[new_thread_id].priority = priority;
     ulmgr.ulthreads[new_thread_id].state = RUNNABLE;
-    ulmgr.ulthreads[new_thread_id].tid = new_thread_id;
 
     printf("[*] ultcreate(tid: %d, ra: %p, sp: %p)\n", new_thread_id, start, stack);
 
@@ -220,9 +224,10 @@ while(1) {
 
     // set the value to the next thread that will be run
     ulmgr.tid_running = next_tid;
+    ulmgr.ulthread_tid_last_ran = next_tid;
 
     // Switch between thread contexts
-    ulthread_context_switch(&(ulmgr.sch_thread), ulmgr.ulthreads + next_tid);
+    ulthread_context_switch(ulmgr.ulthreads + SCHEDULING_THREAD_TID, ulmgr.ulthreads + next_tid);
 }
 
 }
@@ -232,19 +237,27 @@ void ulthread_yield(void) {
 
     int tid = get_current_tid();
 
+    if(tid == SCHEDULING_THREAD_TID)
+        return;
+
     ulmgr.ulthreads[tid].state = YIELD;
 
     /* Please add thread-id instead of '0' here. */
     printf("[*] ultyield(tid: %d)\n", tid);
 
-    ulthread_context_switch(ulmgr.ulthreads + tid, &(ulmgr.sch_thread));
+    ulmgr.tid_running = 0;
+    ulthread_context_switch(ulmgr.ulthreads + tid, ulmgr.ulthreads + SCHEDULING_THREAD_TID);
 }
 
 /* Destroy thread */
 void ulthread_destroy(void) {
     int tid = get_current_tid();
 
+    if(tid == SCHEDULING_THREAD_TID)
+        return;
+
     ulmgr.ulthreads[tid].state = FREE;
 
-    ulthread_context_switch(ulmgr.ulthreads + tid, &(ulmgr.sch_thread));
+    ulmgr.tid_running = 0;
+    ulthread_context_switch(ulmgr.ulthreads + tid, ulmgr.ulthreads + SCHEDULING_THREAD_TID);
 }
