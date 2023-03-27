@@ -154,7 +154,32 @@ static int get_next_thread_to_run_ROUNDROBIN()
 
 static int get_next_thread_to_run_PRIORITY()
 {
-    return -1;
+    int next_tid = -1;
+
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+    {
+        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        if(next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority)
+            next_tid = tid;
+    }
+
+    if(next_tid != -1)
+        return next_tid;
+    
+    // all threads are either YIELD or FREE
+    // we make all the YIELDED threads RUNNABLE now
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+        if(ulmgr.ulthreads[i].state == YIELD)
+            ulmgr.ulthreads[i].state = RUNNABLE;
+    
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+    {
+        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        if(next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority)
+            next_tid = tid;
+    }
+
+    return next_tid;
 }
 
 static int get_next_thread_to_run_FCFS()
