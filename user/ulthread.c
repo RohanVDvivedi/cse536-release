@@ -126,7 +126,38 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
 
 static int get_next_thread_to_run_ROUNDROBIN()
 {
-    return -1;
+    int next_tid = -1;
+
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+    {
+        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        if(ulmgr.ulthreads[tid].state == RUNNABLE)
+        {
+            next_tid = tid;
+            break;
+        }
+    }
+
+    if(next_tid != -1)
+        return next_tid;
+    
+    // all threads are either YIELD or FREE
+    // we make all the YIELDED threads RUNNABLE now
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+        if(ulmgr.ulthreads[i].state == YIELD)
+            ulmgr.ulthreads[i].state = RUNNABLE;
+    
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+    {
+        int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
+        if(ulmgr.ulthreads[tid].state == RUNNABLE)
+        {
+            next_tid = tid;
+            break;
+        }
+    }
+
+    return next_tid;
 }
 
 static int get_next_thread_to_run_PRIORITY()
