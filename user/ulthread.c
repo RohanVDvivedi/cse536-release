@@ -28,6 +28,8 @@ struct ulthread_proc
     ulthread_state state;
 
     int tid;
+
+    uint64 stack_at;
 };
 
 typedef struct ulthreading_manager ulthreading_manager;
@@ -55,14 +57,18 @@ static uint64 get_sp(void) {
         mv a0, sp;\
         ret;\
     ");
-    return 0;
 }
 
 /* Get thread ID */
 /* the thread id is stored on to the stack as the first value */
 int get_current_tid(void) {
     uint64 this_sp = get_sp();
-    return *((uint64*)(PGROUNDUP(this_sp) - 8));
+
+    for(int i = 0; i < ulmgr.ulthreads_count; i++)
+        if(ulmgr.ulthreads[i].stack_at <= this_sp && this_sp < ulmgr.ulthreads[i].stack_at + PGSIZE)
+            return i;
+
+    return -1;
 }
 
 /* Thread initialization */
@@ -110,14 +116,13 @@ bool ulthread_create(uint64 start, uint64 stack, uint64 args[], int priority) {
     ulmgr.ulthreads[new_thread_id].priority = priority;
     ulmgr.ulthreads[new_thread_id].state = RUNNABLE;
     ulmgr.ulthreads[new_thread_id].tid = new_thread_id;
+    ulmgr.ulthreads[new_thread_id].stack_at = stack;
 
     printf("[*] ultcreate(tid: %d, ra: %p, sp: %p)\n", new_thread_id, start, stack);
 
     ulmgr.ulthreads[new_thread_id].sp = stack + PGSIZE;
     ulmgr.ulthreads[new_thread_id].ra = start;
     ulmgr.ulthreads[new_thread_id].a0 = ((uint64)args);
-    ulmgr.ulthreads[new_thread_id].sp -= 8;
-    *((uint64*)(ulmgr.ulthreads[new_thread_id].sp)) = new_thread_id;
 
     return false;
 }
@@ -177,7 +182,7 @@ static int get_next_thread_to_run_FCFS()
 void ulthread_schedule(void) {
 
 while(1) {
-    int next_tid;
+    int next_tid = -1;
 
     switch(ulmgr.sch_algo)
     {
