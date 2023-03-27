@@ -16,11 +16,10 @@
 typedef struct ulthread_proc ulthread_proc;
 struct ulthread_proc
 {
+    uint64 ra;
     uint64 sp;
     uint64 s0_s11[12];
-    uint64 f8_f9[2];
-    uint64 f18_f27[10];
-    uint64 ra;
+
     uint64 a0;
 
     int priority;
