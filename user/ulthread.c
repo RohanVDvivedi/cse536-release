@@ -159,7 +159,7 @@ static int get_next_thread_to_run_PRIORITY()
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
         int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
-        if(next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority)
+        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority))
             next_tid = tid;
     }
 
@@ -175,7 +175,7 @@ static int get_next_thread_to_run_PRIORITY()
     for(int i = 0; i < ulmgr.ulthreads_count; i++)
     {
         int tid = (ulmgr.tid_running + 1 + i) % ulmgr.ulthreads_count;
-        if(next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority)
+        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority))
             next_tid = tid;
     }
 
