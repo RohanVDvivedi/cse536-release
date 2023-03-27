@@ -75,12 +75,15 @@ void ulthread_init(int schedalgo) {
 
 static void* realloc(void* old_mem, uint64 old_size, uint64 new_size)
 {
+    if(old_size == new_size)
+        return old_mem;
     void* new_mem = malloc(new_size);
     if(new_mem == NULL)
         return NULL;
     uint64 copy_size = (old_size < new_size) ? old_size : new_size;
     memmove(new_mem, old_mem, copy_size);
-    free(old_mem);
+    if(old_mem != NULL && old_size > 0)
+        free(old_mem);
     return new_mem;
 }
 
