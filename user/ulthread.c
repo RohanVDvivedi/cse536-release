@@ -142,26 +142,14 @@ static int get_next_thread_to_run_ROUNDROBIN()
         }
     }
 
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == YIELD)
+        ulmgr.ulthreads[ulmgr.tid_last_ran].state = RUNNABLE;
+
     if(next_tid != -1)
         return next_tid;
     
-    // all threads are either YIELD or FREE
-    // we make all the YIELDED threads RUNNABLE now
-    for(int i = 0; i < ulmgr.ulthreads_count; i++)
-        if(ulmgr.ulthreads[i].state == YIELD)
-            ulmgr.ulthreads[i].state = RUNNABLE;
-    
-    for(int i = 0; i < ulmgr.ulthreads_count; i++)
-    {
-        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
-        if(tid == SCHEDULING_THREAD_TID)
-            continue;
-        if(ulmgr.ulthreads[tid].state == RUNNABLE)
-        {
-            next_tid = tid;
-            break;
-        }
-    }
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == RUNNABLE)
+        next_tid = ulmgr.tid_last_ran;
 
     return next_tid;
 }
@@ -179,23 +167,14 @@ static int get_next_thread_to_run_PRIORITY()
             next_tid = tid;
     }
 
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == YIELD)
+        ulmgr.ulthreads[ulmgr.tid_last_ran].state = RUNNABLE;
+
     if(next_tid != -1)
         return next_tid;
     
-    // all threads are either YIELD or FREE
-    // we make all the YIELDED threads RUNNABLE now
-    for(int i = 0; i < ulmgr.ulthreads_count; i++)
-        if(ulmgr.ulthreads[i].state == YIELD)
-            ulmgr.ulthreads[i].state = RUNNABLE;
-    
-    for(int i = 0; i < ulmgr.ulthreads_count; i++)
-    {
-        int tid = (ulmgr.tid_last_ran + 1 + i) % ulmgr.ulthreads_count;
-        if(tid == SCHEDULING_THREAD_TID)
-            continue;
-        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[next_tid].priority < ulmgr.ulthreads[tid].priority))
-            next_tid = tid;
-    }
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == RUNNABLE)
+        next_tid = ulmgr.tid_last_ran;
 
     return next_tid;
 }
