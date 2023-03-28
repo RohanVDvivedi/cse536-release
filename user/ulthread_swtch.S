@@ -32,6 +32,14 @@ ulthread_context_switch:
 
         # this might be the first call to the thread, in that case we need to set its argument parameter
         # in anyother case it is equivalent to a no-op
-        ld a0, 112(a1)
+        mv a7, a1
+        ld a7, 112(a7)
+
+        ld a0, 0(a7)
+        ld a1, 8(a7)
+        ld a2, 16(a7)
+        ld a3, 24(a7)
+        ld a4, 32(a7)
+        ld a5, 40(a7)
 
         ret
