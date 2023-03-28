@@ -186,7 +186,7 @@ static int get_next_thread_to_run_FCFS()
     // for this loop tid will never be SCHEDULING_THREAD_TID
     for(int tid = 1; tid < ulmgr.ulthreads_count; tid++)
     {
-        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[tid].started_at < ulmgr.ulthreads[next_tid].started_at))
+        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[tid].created_at < ulmgr.ulthreads[next_tid].created_at))
             next_tid = tid;
     }
 
