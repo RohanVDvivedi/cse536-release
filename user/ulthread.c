@@ -181,7 +181,25 @@ static int get_next_thread_to_run_PRIORITY()
 
 static int get_next_thread_to_run_FCFS()
 {
-    return -1;
+    int next_tid = -1;
+
+    // for this loop tid will never be SCHEDULING_THREAD_TID
+    for(int tid = 1; tid < ulmgr.ulthreads_count; tid++)
+    {
+        if(ulmgr.ulthreads[tid].state == RUNNABLE && (next_tid == -1 || ulmgr.ulthreads[tid].started_at < ulmgr.ulthreads[next_tid].started_at))
+            next_tid = tid;
+    }
+
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == YIELD)
+        ulmgr.ulthreads[ulmgr.tid_last_ran].state = RUNNABLE;
+
+    if(next_tid != -1)
+        return next_tid;
+    
+    if(ulmgr.tid_last_ran != SCHEDULING_THREAD_TID && ulmgr.ulthreads[ulmgr.tid_last_ran].state == RUNNABLE)
+        next_tid = ulmgr.tid_last_ran;
+
+    return next_tid;
 }
 
 /* Thread scheduler */
