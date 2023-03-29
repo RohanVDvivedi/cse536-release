@@ -14,7 +14,6 @@
 /* Stack region for different threads */
 char stacks[PGSIZE*MAXULTHREADS];
 
-/* Simple example that allocates heap memory and accesses it. */
 void ul_start_func(void) {
     printf("[.] started the thread function (tid = %d) \n", get_current_tid());
 

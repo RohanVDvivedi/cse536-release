@@ -14,7 +14,6 @@
 /* Stack region for different threads */
 char stacks[PGSIZE*MAXULTHREADS];
 
-/* Simple example that allocates heap memory and accesses it. */
 void ul_start_func(void) {
     /* Start the thread here. */
     for (int i = 0; i < 1000; i++);
