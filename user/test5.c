@@ -16,7 +16,7 @@ char stacks[PGSIZE*MAXULTHREADS];
 
 uint64 get_current_time(void) {
     /* Replace with ctime */
-    return 0;
+    return ctime();
 }
 
 /* Simple example that allocates heap memory and accesses it. */
