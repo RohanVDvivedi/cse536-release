@@ -30,15 +30,40 @@ struct vm_reg {
 // Keep the virtual state of the VM's privileged registers
 struct vm_virtual_state {
     // User trap setup
-    // User trap handling
-    // Supervisor trap setup
-    // User trap handling
-    // Supervisor page table register
-    // Machine information registers
-    // Machine trap setup registers
-    // Machine trap handling registers
+    #define USER_TRAP_SETUP_REGS_COUNT 3
+    #define USER_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET 0
 
-    struct vm_reg tmp;
+    // User trap handling
+    #define USER_TRAP_HANDLING_REGS_COUNT 5
+    #define USER_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET (USER_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET + USER_TRAP_SETUP_REGS_COUNT)
+
+    // Supervisor trap setup
+    #define SUPERVISOR_TRAP_SETUP_REGS_COUNT 6
+    #define SUPERVISOR_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET (USER_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + USER_TRAP_HANDLING_REGS_COUNT)
+
+    // Supervisor trap handling
+    #define SUPERVISOR_TRAP_HANDLING_REGS_COUNT 5
+    #define SUPERVISOR_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET (SUPERVISOR_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET + SUPERVISOR_TRAP_SETUP_REGS_COUNT)
+
+    // Supervisor page table register
+    #define SUPERVISOR_PAGE_TABLE_REGS_COUNT 1
+    #define SUPERVISOR_PAGE_TABLE_REGS_STATE_STRUCT_OFFSET (SUPERVISOR_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + SUPERVISOR_TRAP_HANDLING_REGS_COUNT)
+
+    // Machine information registers
+    #define MACHINE_INFORMATION_REGS_COUNT 4
+    #define MACHINE_INFORMATION_REGS_STATE_STRUCT_OFFSET (SUPERVISOR_PAGE_TABLE_REGS_STATE_STRUCT_OFFSET + SUPERVISOR_PAGE_TABLE_REGS_COUNT)
+
+    // Machine trap setup registers
+    #define MACHINE_TRAP_SETUP_REGS_COUNT 8
+    #define MACHINE_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET (MACHINE_INFORMATION_REGS_STATE_STRUCT_OFFSET + MACHINE_INFORMATION_REGS_COUNT)
+
+    // Machine trap handling registers
+    #define MACHINE_TRAP_HANDLING_REGS_COUNT 7
+    #define MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET (MACHINE_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_SETUP_REGS_COUNT)
+
+    #define TOTAL_REGS_IN_STATE (MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_HANDLING_REGS_COUNT)
+
+    struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
 };
 
 void trap_and_emulate(void) {
