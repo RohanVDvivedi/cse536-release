@@ -30,6 +30,17 @@ struct vm_virtual_state {
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
+    /* Current process struct */
+    struct proc *p = myproc();
+
+    // get virtual address of the faulting instruction
+    uint64 virt_addr_instr = r_sepc();
+    // physical address of the faulting instruction
+    uint64 phy_addr_instr = walkaddr(p->pagetable, virt_addr_instr);
+
+    // faulting instruction
+    uint32 instr = *((uint32*)(phy_addr_instr));
+
     uint32 op       = 0;
     uint32 rd       = 0;
     uint32 rs1      = 0;
