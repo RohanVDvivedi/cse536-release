@@ -22,12 +22,14 @@ int get_mode(int code)
 }
 
 // Struct to keep VM registers (Sample; feel free to change.)
+typedef struct vm_reg vm_reg;
 struct vm_reg {
     int     code; // the register's code is enough to get the information about (readable+writable OR readonly) and about (mode in which it is accessible)
     uint64  val;
 };
 
 // Keep the virtual state of the VM's privileged registers
+typedef struct vm_virtual_state vm_virtual_state;
 struct vm_virtual_state {
     // User trap setup
     #define USER_TRAP_SETUP_REGS_COUNT 3
@@ -65,6 +67,8 @@ struct vm_virtual_state {
 
     struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
 };
+
+vm_virtual_state global_vmm_state;
 
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
