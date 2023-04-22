@@ -98,5 +98,62 @@ void trap_and_emulate(void) {
 }
 
 void trap_and_emulate_init(void) {
-    /* Create and initialize all state for the VM */
+    global_vmm_state = (vm_virtual_state){
+        .vm_regs = {
+            // User trap setup
+            {.code = 0x000, .val = 0},
+            {.code = 0x004, .val = 0},
+            {.code = 0x005, .val = 0},
+
+            // User trap handling
+            {.code = 0x040, .val = 0},
+            {.code = 0x041, .val = 0},
+            {.code = 0x042, .val = 0},
+            {.code = 0x043, .val = 0},
+            {.code = 0x044, .val = 0},
+
+            // Supervisor trap setup
+            {.code = 0x100, .val = 0},
+            {.code = 0x102, .val = 0},
+            {.code = 0x103, .val = 0},
+            {.code = 0x104, .val = 0},
+            {.code = 0x105, .val = 0},
+            {.code = 0x106, .val = 0},
+
+            // Supervisor trap handling
+            {.code = 0x140, .val = 0},
+            {.code = 0x141, .val = 0},
+            {.code = 0x142, .val = 0},
+            {.code = 0x143, .val = 0},
+            {.code = 0x144, .val = 0},
+
+            // Supervisor page table register
+            {.code = 0x180, .val = 0},
+
+            // Machine information registers
+            {.code = 0xf11, .val = 0},
+            {.code = 0xf12, .val = 0},
+            {.code = 0xf13, .val = 0},
+            {.code = 0xf14, .val = 0},
+
+            // Machine trap setup registers
+            {.code = 0x300, .val = 0},
+            {.code = 0x301, .val = 0},
+            {.code = 0x302, .val = 0},
+            {.code = 0x303, .val = 0},
+            {.code = 0x304, .val = 0},
+            {.code = 0x305, .val = 0},
+            {.code = 0x306, .val = 0},
+            {.code = 0x310, .val = 0},
+
+            // Machine trap handling registers
+            {.code = 0x340, .val = 0},
+            {.code = 0x341, .val = 0},
+            {.code = 0x342, .val = 0},
+            {.code = 0x343, .val = 0},
+            {.code = 0x344, .val = 0},
+            {.code = 0x34a, .val = 0},
+            {.code = 0x34b, .val = 0},
+        }
+    };
 }
