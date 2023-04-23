@@ -95,7 +95,7 @@ vm_virtual_state global_vmm_state;
 #define SYSTEM 0x73
 
 // funct3
-#define ECALL_OR_EBREAK  0x0
+#define ECALL_EBREAK_SRET_MRET  0x0
 #define CSRRW  0x1
 #define CSRRS  0x2
 #define CSRRC  0x3
@@ -142,9 +142,9 @@ void trap_and_emulate(void) {
 
     switch(funct3)
     {
-        case ECALL_OR_EBREAK :
+        case ECALL_EBREAK_SRET_MRET :
         {
-            if(rd == 0 && rs1 == 0) // then it is ecall -> else if (upper == 1) then it is ebreak
+            if(rd == 0 && rs1 == 0)
             {
                 switch(upper)
                 {
