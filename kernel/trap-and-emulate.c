@@ -151,26 +151,100 @@ void trap_and_emulate(void) {
         }
         case CSRRW :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            if(rs1 == 0)
+                csr_p->val = 0;
+            else
+            {
+                uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
+                csr_p->val = (*rs1_p);
+            }
             break;
         }
         case CSRRS :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            if(rs1 != 0)
+            {
+                uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
+                csr_p->val |= (*rs1_p);
+            }
             break;
         }
         case CSRRC :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            if(rs1 != 0)
+            {
+                uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
+                csr_p->val &= (~(*rs1_p));
+            }
             break;
         }
         case CSRRWI :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            csr_p->val = rs1;
             break;
         }
         case CSRRSI :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            csr_p->val |= rs1;
             break;
         }
         case CSRRCI :
         {
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
+
+            // TODO : check mode/status
+
+            if(rd != 0)
+            {
+                uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
+                *rd_p = csr_p->val;
+            }
+            csr_p->val &= (~rs1);
             break;
         }
         default :
