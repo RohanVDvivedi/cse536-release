@@ -131,11 +131,10 @@ void trap_and_emulate(void) {
     {
         case ECALL_OR_EBREAK :
         {
-            if(upper == 0) // then it is ecall
+            if(rd == 0 && rs1 == 0 && upper == 0) // then it is ecall -> else if (upper == 1) then it is ebreak
             {
 
             }
-            // else if(upper == 1) // then it is ebreak
             else
             {
                 setkilled(p);
