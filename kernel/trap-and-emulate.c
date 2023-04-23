@@ -68,6 +68,8 @@ struct vm_virtual_state {
     #define TOTAL_REGS_IN_STATE (MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_HANDLING_REGS_COUNT)
 
     struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
+
+    int current_privilege_mode;
 };
 
 vm_reg* get_register_by_code(vm_virtual_state* vvs, int code)
@@ -327,6 +329,7 @@ void trap_and_emulate_init(void) {
             {.code = 0x344, .val = 0},
             {.code = 0x34a, .val = 0},
             {.code = 0x34b, .val = 0},
-        }
+        },
+        .current_privilege_mode = M_MODE_REG,
     };
 }
