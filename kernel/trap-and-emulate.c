@@ -115,8 +115,6 @@ void trap_and_emulate(void) {
     // faulting instruction
     uint32 instr = *((uint32*)(phy_addr_instr));
 
-    printf("va = %p, pa = %p, instruction = %p\n", virt_addr_instr, phy_addr_instr, (uint64)instr);
-
     // all system instructions are I-type instructions
     uint32 op       = ((instr >>  0) & ((1 <<  7) - 1));
     uint32 rd       = ((instr >>  7) & ((1 <<  5) - 1));
