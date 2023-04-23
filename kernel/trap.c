@@ -52,7 +52,7 @@ usertrap(void)
 
   // r_scause of 2 implies an illegal instruction
   // in our case a machine mode or supervisor mode instruction being executed in user mode
-  if(r_scause() == 2)
+  if(r_scause() == 2 && memcmp(p->name, "vm-", 3) == 0)
   {
     trap_and_emulate();
 
