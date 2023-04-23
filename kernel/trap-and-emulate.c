@@ -167,10 +167,6 @@ void trap_and_emulate(void) {
         {
             break;
         }
-        case ECALL_OR_EBREAK :
-        {
-            break;
-        }
         default :
         {
             setkilled(p);
