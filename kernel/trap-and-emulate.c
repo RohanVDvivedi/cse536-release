@@ -158,7 +158,7 @@ void trap_and_emulate(void) {
         case CSRRW :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
@@ -180,7 +180,7 @@ void trap_and_emulate(void) {
         case CSRRS :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
@@ -200,7 +200,7 @@ void trap_and_emulate(void) {
         case CSRRC :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
@@ -220,7 +220,7 @@ void trap_and_emulate(void) {
         case CSRRWI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
@@ -236,7 +236,7 @@ void trap_and_emulate(void) {
         case CSRRSI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
@@ -252,7 +252,7 @@ void trap_and_emulate(void) {
         case CSRRCI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode >= get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
                 return;
