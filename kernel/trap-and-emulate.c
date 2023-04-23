@@ -151,10 +151,8 @@ void trap_and_emulate(void) {
         }
         case CSRRW :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -171,10 +169,9 @@ void trap_and_emulate(void) {
         }
         case CSRRS :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            printf("1\n");
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -189,10 +186,8 @@ void trap_and_emulate(void) {
         }
         case CSRRC :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -207,10 +202,8 @@ void trap_and_emulate(void) {
         }
         case CSRRWI :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -221,10 +214,8 @@ void trap_and_emulate(void) {
         }
         case CSRRSI :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -235,10 +226,8 @@ void trap_and_emulate(void) {
         }
         case CSRRCI :
         {
-            vm_reg* csr_p = get_register_by_code(&global_vmm_state, funct3);
-
+            vm_reg* csr_p = get_register_by_code(&global_vmm_state, upper);
             // TODO : check mode/status
-
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
