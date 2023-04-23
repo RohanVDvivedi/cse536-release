@@ -80,6 +80,13 @@ vm_reg* get_register_by_code(vm_virtual_state* vvs, int code)
     return NULL;
 }
 
+uint64* get_nth_unpriv_register_from_trapframe(struct proc* p, int nth)
+{
+    if(nth == 0 || nth > 31)
+        return NULL;
+    return (&(p->trapframe->ra)) + (nth-1);
+}
+
 vm_virtual_state global_vmm_state;
 
 // opcode
