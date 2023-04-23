@@ -82,6 +82,18 @@ vm_reg* get_register_by_code(vm_virtual_state* vvs, int code)
 
 vm_virtual_state global_vmm_state;
 
+// opcode
+#define SYSTEM 0x73
+
+// funct3
+#define ECALL_OR_EBREAK  0x0
+#define CSRRW  0x1
+#define CSRRS  0x2
+#define CSRRC  0x3
+#define CSRRWI 0x5
+#define CSRRSI 0x6
+#define CSRRCI 0x7
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
@@ -107,6 +119,64 @@ void trap_and_emulate(void) {
 
     printf("funct3 = %x\n", funct3);
     printf("[PI] op = %x, rd = %x, rs1 = %x, upper = %x\n", op, rd, rs1, upper);
+
+    // if not a system opcode
+    if(op != SYSTEM)
+    {
+        setkilled(p);
+        return;
+    }
+
+    switch(funct3)
+    {
+        case ECALL_OR_EBREAK :
+        {
+            if(upper == 0) // then it is ecall
+            {
+
+            }
+            // else if(upper == 1) // then it is ebreak
+            else
+            {
+                setkilled(p);
+                return;
+            }
+            break;
+        }
+        case CSRRW :
+        {
+            break;
+        }
+        case CSRRS :
+        {
+            break;
+        }
+        case CSRRC :
+        {
+            break;
+        }
+        case CSRRWI :
+        {
+            break;
+        }
+        case CSRRSI :
+        {
+            break;
+        }
+        case CSRRCI :
+        {
+            break;
+        }
+        case ECALL_OR_EBREAK :
+        {
+            break;
+        }
+        default :
+        {
+            setkilled(p);
+            return;
+        }
+    }
 }
 
 void trap_and_emulate_init(void) {
