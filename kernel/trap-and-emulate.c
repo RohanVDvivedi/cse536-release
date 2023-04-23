@@ -68,6 +68,16 @@ struct vm_virtual_state {
     struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
 };
 
+vm_reg* get_register_by_code(vm_virtual_state* vvs, int code)
+{
+    for(int i = 0; i < TOTAL_REGS_IN_STATE; i++)
+    {
+        if(vvs->vm_regs[i].code == code)
+            return &(vvs->vm_regs[i]);
+    }
+    return NULL;
+}
+
 vm_virtual_state global_vmm_state;
 
 void trap_and_emulate(void) {
