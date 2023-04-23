@@ -144,9 +144,28 @@ void trap_and_emulate(void) {
     {
         case ECALL_OR_EBREAK :
         {
-            if(rd == 0 && rs1 == 0 && upper == 0) // then it is ecall -> else if (upper == 1) then it is ebreak
+            if(rd == 0 && rs1 == 0) // then it is ecall -> else if (upper == 1) then it is ebreak
             {
-
+                switch(upper)
+                {
+                    case ECALL :
+                    {
+                        break;
+                    }
+                    case SRET :
+                    {
+                        break;
+                    }
+                    case MRET :
+                    {
+                        break;
+                    }
+                    default :
+                    {
+                        setkilled(p);
+                        return;
+                    }
+                }
             }
             else
             {
