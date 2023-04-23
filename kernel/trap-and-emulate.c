@@ -103,6 +103,12 @@ vm_virtual_state global_vmm_state;
 #define CSRRSI 0x6
 #define CSRRCI 0x7
 
+// upper
+#define ECALL  0x0
+#define EBREAK 0x1
+#define SRET   0x102
+#define MRET   0x302
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
