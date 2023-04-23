@@ -58,7 +58,7 @@ struct vm_virtual_state {
     #define MACHINE_INFORMATION_REGS_STATE_STRUCT_OFFSET (SUPERVISOR_PAGE_TABLE_REGS_STATE_STRUCT_OFFSET + SUPERVISOR_PAGE_TABLE_REGS_COUNT)
 
     // Machine trap setup registers
-    #define MACHINE_TRAP_SETUP_REGS_COUNT 8
+    #define MACHINE_TRAP_SETUP_REGS_COUNT 7
     #define MACHINE_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET (MACHINE_INFORMATION_REGS_STATE_STRUCT_OFFSET + MACHINE_INFORMATION_REGS_COUNT)
 
     // Machine trap handling registers
@@ -221,7 +221,6 @@ void trap_and_emulate_init(void) {
             {.code = 0x304, .val = 0},
             {.code = 0x305, .val = 0},
             {.code = 0x306, .val = 0},
-            {.code = 0x310, .val = 0},
 
             // Machine trap handling registers
             {.code = 0x340, .val = 0},
