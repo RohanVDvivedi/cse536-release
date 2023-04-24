@@ -43,6 +43,14 @@ struct vm_reg {
 #define SEPC    0x141
 #define MEPC    0x341
 
+// status bits
+#define SIE_FL  (0x1ULL <<  1)
+#define MIE_FL  (0x1ULL <<  3)
+#define SPIE_FL (0x1ULL <<  5)
+#define MPIE_FL (0x1ULL <<  7)
+#define SPP_FL  (0x1ULL <<  8)
+#define MPP_FL  (0x3ULL << 11)
+
 // Keep the virtual state of the VM's privileged registers
 typedef struct vm_virtual_state vm_virtual_state;
 struct vm_virtual_state {
@@ -165,16 +173,43 @@ void trap_and_emulate(void) {
                     {
                         if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
+                            // change mode to S mode
                             global_vmm_state.current_privilege_mode = S_MODE_REG;
+
+                            // move pc to sepc and stvec to pc
                             get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+
+                            // move SIE bit to SPIE bit, and clear SIE bit
+                            vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
+                            uint64 SIE_bit = sstatus_p->val & SIE_FL;
+                            sstatus_p->val &= (~SIE_FL);
+                            sstatus_p->val &= (~SPIE_FL);
+                            sstatus_p->val |= (SIE_bit << 4);
+
+                            // make SPP = 0 (u mode)
+                            sstatus_p->val &= (~SPP_FL);
                             return;
                         }
                         else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
                         {
+                            // change mode to M mode
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
+
+                            // move pc to mepc and mtvec to pc
                             get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
+
+                            // move MIE bit to MPIE bit and clear MIE bit
+                            vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
+                            uint64 MIE_bit = mstatus_p->val & MIE_FL;
+                            mstatus_p->val &= (~MIE_FL);
+                            mstatus_p->val &= (~MPIE_FL);
+                            mstatus_p->val |= (MIE_bit << 4);
+
+                            // make MPP = 01 (s mode)
+                            mstatus_p->val &= (~MPP_FL);
+                            mstatus_p->val |= (((uint64)S_MODE_REG) << 11);
                             return;
                         }
                         else
