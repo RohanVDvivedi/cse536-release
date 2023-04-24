@@ -43,6 +43,10 @@ struct vm_reg {
 #define SEPC    0x141
 #define MEPC    0x341
 
+#define UCAUSE  0x042
+#define SCAUSE  0x142
+#define MCAUSE  0x342
+
 // status bits
 #define SIE_FL  (0x1ULL <<  1)
 #define MIE_FL  (0x1ULL <<  3)
@@ -180,6 +184,9 @@ void trap_and_emulate(void) {
                             get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
 
+                            // set scause register
+                            get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
+
                             // move SIE bit to SPIE bit, and clear SIE bit
                             vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
                             uint64 SIE_bit = sstatus_p->val & SIE_FL;
@@ -199,6 +206,9 @@ void trap_and_emulate(void) {
                             // move pc to mepc and mtvec to pc
                             get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
+
+                            // set mcause register
+                            get_register_by_code(&global_vmm_state, MCAUSE)->val = 2;
 
                             // move MIE bit to MPIE bit and clear MIE bit
                             vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
