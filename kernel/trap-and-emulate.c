@@ -236,10 +236,59 @@ void trap_and_emulate(void) {
                     }
                     case SRET :
                     {
+                        if(global_vmm_state.current_privilege_mode != S_MODE_REG)
+                        {
+                            setkilled(p);
+                            return;
+                        }
+
+                        // get the new privilege mode to return to
+                        vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
+                        int new_priv_mode = (sstatus_p->val & SPP_FL) >> 8;
+
+                        // set MPP to 0
+                        sstatus_p->val &= (~SPP_FL);
+
+                        // move MPIE to MIE and clear MPIE
+                        uint64 SPIE_bit = sstatus_p->val & SPIE_FL;
+                        sstatus_p->val &= (~SIE_FL);
+                        sstatus_p->val &= (~SPIE_FL);
+                        sstatus_p->val |= (SPIE_bit >> 4);
+
+                        // move mepc to pc
+                        p->trapframe->epc = get_register_by_code(&global_vmm_state, SEPC)->val;
+
+                        // update the current privilege mode
+                        global_vmm_state.current_privilege_mode = new_priv_mode;
                         break;
                     }
                     case MRET :
                     {
+                        if(global_vmm_state.current_privilege_mode != M_MODE_REG)
+                        {
+                            setkilled(p);
+                            return;
+                        }
+
+                        // get the new privilege mode to return to
+                        vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
+                        int new_priv_mode = (mstatus_p->val & MPP_FL) >> 11;
+
+                        // set MPP to 0
+                        mstatus_p->val &= (~MPP_FL);
+
+                        // move MPIE to MIE and clear MPIE
+                        uint64 MPIE_bit = mstatus_p->val & MPIE_FL;
+                        mstatus_p->val &= (~MIE_FL);
+                        mstatus_p->val &= (~MPIE_FL);
+                        mstatus_p->val |= (MPIE_bit >> 4);
+
+                        // move mepc to pc
+                        p->trapframe->epc = get_register_by_code(&global_vmm_state, MEPC)->val;
+
+                        // update the current privilege mode
+                        global_vmm_state.current_privilege_mode = new_priv_mode;
+
                         break;
                     }
                     default :
