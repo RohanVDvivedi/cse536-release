@@ -166,14 +166,14 @@ void trap_and_emulate(void) {
                         if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
                             global_vmm_state.current_privilege_mode = S_MODE_REG;
-                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc + 4;
+                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
                             return;
                         }
                         else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
                         {
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
-                            get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc + 4;
+                            get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
                             return;
                         }
