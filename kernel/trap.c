@@ -53,13 +53,7 @@ usertrap(void)
   // r_scause of 2 implies an illegal instruction, 8 implies an ecall called from vm
   // in our case a machine mode or supervisor mode instruction being executed in user mode
   if((r_scause() == 2 || r_scause() == 8) && memcmp(p->name, "vm-", 3) == 0)
-  {
-    trap_and_emulate();
-
-    // we either execute the illegal instruction in VMM or we jump right over it
-    // in any case we always increment the PC of the user level VM
-    p->trapframe->epc += 4;
-  }
+    trap_and_emulate(); // trap and execute will increment epc
   else
   if(r_scause() == 8){
     // system call

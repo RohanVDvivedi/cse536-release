@@ -194,6 +194,7 @@ void trap_and_emulate(void) {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val = (*rs1_p);
             }
+            p->trapframe->epc += 4;
             break;
         }
         case CSRRS :
@@ -214,6 +215,7 @@ void trap_and_emulate(void) {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val |= (*rs1_p);
             }
+            p->trapframe->epc += 4;
             break;
         }
         case CSRRC :
@@ -234,6 +236,7 @@ void trap_and_emulate(void) {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val &= (~(*rs1_p));
             }
+            p->trapframe->epc += 4;
             break;
         }
         case CSRRWI :
@@ -250,6 +253,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val = rs1;
+            p->trapframe->epc += 4;
             break;
         }
         case CSRRSI :
@@ -266,6 +270,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val |= rs1;
+            p->trapframe->epc += 4;
             break;
         }
         case CSRRCI :
@@ -282,6 +287,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val &= (~rs1);
+            p->trapframe->epc += 4;
             break;
         }
         default :
