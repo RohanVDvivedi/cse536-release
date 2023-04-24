@@ -185,7 +185,7 @@ void trap_and_emulate(void) {
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
 
                             // set scause register
-                            get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
+                            get_register_by_code(&global_vmm_state, SCAUSE)->val = 8;
 
                             // move SIE bit to SPIE bit, and clear SIE bit
                             vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
@@ -208,7 +208,7 @@ void trap_and_emulate(void) {
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
 
                             // set mcause register
-                            get_register_by_code(&global_vmm_state, MCAUSE)->val = 2;
+                            get_register_by_code(&global_vmm_state, MCAUSE)->val = 9;
 
                             // move MIE bit to MPIE bit and clear MIE bit
                             vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
