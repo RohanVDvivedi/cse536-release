@@ -47,6 +47,8 @@ struct vm_reg {
 #define SCAUSE  0x142
 #define MCAUSE  0x342
 
+#define MEDELEG 0x302
+
 // status bits
 #define SIE_FL  (0x1ULL <<  1)
 #define MIE_FL  (0x1ULL <<  3)
@@ -175,33 +177,13 @@ void trap_and_emulate(void) {
                 {
                     case ECALL :
                     {
-                        // go to s mode
-                        if(global_vmm_state.current_privilege_mode == U_MODE_REG)
-                        {
-                            // move pc to sepc and stvec to pc
-                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
-                            p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+                        int go_to_machine_mode = 1;
+                        if( (global_vmm_state.current_privilege_mode == S_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 1) & 1) ||
+                            (global_vmm_state.current_privilege_mode == U_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 3) & 1) )
+                            go_to_machine_mode = 0;
 
-                            // set scause register
-                            get_register_by_code(&global_vmm_state, SCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
-
-                            // move SIE bit to SPIE bit, and clear SIE bit
-                            vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
-                            uint64 SIE_bit = sstatus_p->val & SIE_FL;
-                            sstatus_p->val &= (~SIE_FL);
-                            sstatus_p->val &= (~SPIE_FL);
-                            sstatus_p->val |= (SIE_bit << 4);
-
-                            // make SPP = 0 (u mode)
-                            sstatus_p->val &= (~SPP_FL);
-                            sstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 8) & SPP_FL);
-
-                            // change mode to S mode
-                            global_vmm_state.current_privilege_mode = S_MODE_REG;
-                            return;
-                        }
                         // go to m mode
-                        else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
+                        if(go_to_machine_mode)
                         {
                             // move pc to mepc and mtvec to pc
                             get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
@@ -225,9 +207,29 @@ void trap_and_emulate(void) {
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
                             return;
                         }
+                        // go to s mode
                         else
                         {
-                            setkilled(p);
+                            // move pc to sepc and stvec to pc
+                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
+                            p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+
+                            // set scause register
+                            get_register_by_code(&global_vmm_state, SCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
+
+                            // move SIE bit to SPIE bit, and clear SIE bit
+                            vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
+                            uint64 SIE_bit = sstatus_p->val & SIE_FL;
+                            sstatus_p->val &= (~SIE_FL);
+                            sstatus_p->val &= (~SPIE_FL);
+                            sstatus_p->val |= (SIE_bit << 4);
+
+                            // make SPP = 0 (u mode)
+                            sstatus_p->val &= (~SPP_FL);
+                            sstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 8) & SPP_FL);
+
+                            // change mode to S mode
+                            global_vmm_state.current_privilege_mode = S_MODE_REG;
                             return;
                         }
                         break;
