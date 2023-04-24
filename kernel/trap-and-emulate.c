@@ -177,9 +177,6 @@ void trap_and_emulate(void) {
                     {
                         if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
-                            // change mode to S mode
-                            global_vmm_state.current_privilege_mode = S_MODE_REG;
-
                             // move pc to sepc and stvec to pc
                             get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
@@ -196,13 +193,13 @@ void trap_and_emulate(void) {
 
                             // make SPP = 0 (u mode)
                             sstatus_p->val &= (~SPP_FL);
+
+                            // change mode to S mode
+                            global_vmm_state.current_privilege_mode = S_MODE_REG;
                             return;
                         }
                         else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
                         {
-                            // change mode to M mode
-                            global_vmm_state.current_privilege_mode = M_MODE_REG;
-
                             // move pc to mepc and mtvec to pc
                             get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
@@ -220,6 +217,9 @@ void trap_and_emulate(void) {
                             // make MPP = 01 (s mode)
                             mstatus_p->val &= (~MPP_FL);
                             mstatus_p->val |= (((uint64)S_MODE_REG) << 11);
+
+                            // change mode to M mode
+                            global_vmm_state.current_privilege_mode = M_MODE_REG;
                             return;
                         }
                         else
