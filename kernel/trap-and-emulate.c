@@ -49,6 +49,8 @@ struct vm_reg {
 
 #define MEDELEG 0x302
 
+#define MVENDORID 0xf11
+
 // status bits
 #define SIE_FL  (0x1ULL <<  1)
 #define MIE_FL  (0x1ULL <<  3)
@@ -157,7 +159,7 @@ void trap_and_emulate(void) {
     uint32 rs1      = ((instr >> 15) & ((1 <<  5) - 1));
     uint32 upper    = ((instr >> 20) & ((1 << 12) - 1));
 
-    printf("funct3 = %x\n", funct3);
+    printf("funct3 = %x, vaddr = %p\n", funct3, virt_addr_instr);
     printf("[PI] op = %x, rd = %x, rs1 = %x, upper = %x\n", op, rd, rs1, upper);
 
     // if not a system opcode
@@ -426,6 +428,13 @@ void trap_and_emulate(void) {
             setkilled(p);
             return;
         }
+    }
+
+    // if mvendorid is set to 0, we exit
+    if(get_register_by_code(&global_vmm_state, MVENDORID) == 0)
+    {
+        setkilled(p);
+        return;
     }
 }
 
