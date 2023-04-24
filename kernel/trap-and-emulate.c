@@ -30,6 +30,19 @@ struct vm_reg {
     uint64  val;
 };
 
+// some important register codes
+#define USTATUS 0x000
+#define SSTATUS 0x100
+#define MSTATUS 0x300
+
+#define UTVEC   0x005
+#define STVEC   0x105
+#define MTVEC   0x305
+
+#define UEPC    0x041
+#define SEPC    0x141
+#define MEPC    0x341
+
 // Keep the virtual state of the VM's privileged registers
 typedef struct vm_virtual_state vm_virtual_state;
 struct vm_virtual_state {
@@ -150,6 +163,25 @@ void trap_and_emulate(void) {
                 {
                     case ECALL :
                     {
+                        if(global_vmm_state.current_privilege_mode == U_MODE_REG)
+                        {
+                            global_vmm_state.current_privilege_mode = S_MODE_REG;
+                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc + 4;
+                            p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+                            return;
+                        }
+                        else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
+                        {
+                            global_vmm_state.current_privilege_mode = M_MODE_REG;
+                            get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc + 4;
+                            p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
+                            return;
+                        }
+                        else
+                        {
+                            setkilled(p);
+                            return;
+                        }
                         break;
                     }
                     case SRET :
