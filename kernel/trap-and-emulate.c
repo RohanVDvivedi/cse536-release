@@ -175,6 +175,7 @@ void trap_and_emulate(void) {
                 {
                     case ECALL :
                     {
+                        // go to s mode
                         if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
                             // move pc to sepc and stvec to pc
@@ -182,7 +183,7 @@ void trap_and_emulate(void) {
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
 
                             // set scause register
-                            get_register_by_code(&global_vmm_state, SCAUSE)->val = 8;
+                            get_register_by_code(&global_vmm_state, SCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
 
                             // move SIE bit to SPIE bit, and clear SIE bit
                             vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
@@ -193,11 +194,13 @@ void trap_and_emulate(void) {
 
                             // make SPP = 0 (u mode)
                             sstatus_p->val &= (~SPP_FL);
+                            sstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 8) & SPP_FL);
 
                             // change mode to S mode
                             global_vmm_state.current_privilege_mode = S_MODE_REG;
                             return;
                         }
+                        // go to m mode
                         else if(global_vmm_state.current_privilege_mode == S_MODE_REG)
                         {
                             // move pc to mepc and mtvec to pc
@@ -205,7 +208,7 @@ void trap_and_emulate(void) {
                             p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
 
                             // set mcause register
-                            get_register_by_code(&global_vmm_state, MCAUSE)->val = 9;
+                            get_register_by_code(&global_vmm_state, MCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
 
                             // move MIE bit to MPIE bit and clear MIE bit
                             vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
@@ -216,7 +219,7 @@ void trap_and_emulate(void) {
 
                             // make MPP = 01 (s mode)
                             mstatus_p->val &= (~MPP_FL);
-                            mstatus_p->val |= (((uint64)S_MODE_REG) << 11);
+                            mstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 11) & MPP_FL);
 
                             // change mode to M mode
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
