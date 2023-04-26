@@ -311,6 +311,9 @@ QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 qemu: $K/kernel $V/vm fs.img
 	$(QEMU) $(QEMUOPTS) $(QEMUOPTS1)
 
+objdump: $V/vm
+	riscv64-unknown-elf-objdump -D $^ > vm.log
+
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 

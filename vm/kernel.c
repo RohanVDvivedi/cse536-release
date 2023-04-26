@@ -20,6 +20,8 @@ struct proc p;
 #define KMEMSIZE  1024
 int alloc_pages = 0;
 
+void usertrapret(void);
+
 // simple page-by-page memory allocator
 void* kalloc(void) {
     if (alloc_pages == KMEMSIZE) {
@@ -32,8 +34,8 @@ void* kalloc(void) {
 
 void usertrap(void) {
   /* traps here when back from the userspace code. */
-  asm("sret");
-  while (true);
+  p.trapframe->epc = r_sepc() + 4;
+  usertrapret();
 }
 
 void usertrapret(void) {
