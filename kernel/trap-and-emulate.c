@@ -194,7 +194,7 @@ void trap_and_emulate(void) {
     if(op != SYSTEM)
     {
         setkilled(p);
-        return;
+        goto PROCESS_KILLED;
     }
 
     switch(funct3)
@@ -271,7 +271,7 @@ void trap_and_emulate(void) {
                         if(global_vmm_state.current_privilege_mode != S_MODE_REG)
                         {
                             setkilled(p);
-                            return;
+                            goto PROCESS_KILLED;
                         }
 
                         // get the new privilege mode to return to
@@ -299,7 +299,7 @@ void trap_and_emulate(void) {
                         if(global_vmm_state.current_privilege_mode != M_MODE_REG)
                         {
                             setkilled(p);
-                            return;
+                            goto PROCESS_KILLED;
                         }
 
                         // get the new privilege mode to return to
@@ -326,14 +326,14 @@ void trap_and_emulate(void) {
                     default :
                     {
                         setkilled(p);
-                        return;
+                        goto PROCESS_KILLED;
                     }
                 }
             }
             else
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             break;
         }
@@ -343,7 +343,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -366,7 +366,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -387,7 +387,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -408,7 +408,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -425,7 +425,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -442,7 +442,7 @@ void trap_and_emulate(void) {
             if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
                 setkilled(p);
-                return;
+                goto PROCESS_KILLED;
             }
             if(rd != 0)
             {
@@ -456,7 +456,7 @@ void trap_and_emulate(void) {
         default :
         {
             setkilled(p);
-            return;
+            goto PROCESS_KILLED;
         }
     }
 
@@ -464,8 +464,22 @@ void trap_and_emulate(void) {
     if(get_register_by_code(&global_vmm_state, MVENDORID) == 0)
     {
         setkilled(p);
-        return;
+        goto PROCESS_KILLED;
     }
+
+
+    return;
+
+    // come here only when the process is killed
+    PROCESS_KILLED:;
+
+    // set process pge table to M_mode_pagetable
+    p->pagetable = global_vmm_state.M_mode_pagetable;
+
+    // and release all pages of S_U_mode_pagetable
+    // TODO
+
+    return;
 }
 
 void trap_and_emulate_init(void) {
