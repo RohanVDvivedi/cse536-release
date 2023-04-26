@@ -158,6 +158,21 @@ void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* dupl
     }
 }
 
+void destroy_S_U_mode_pagetable_for_vm(pagetable_t* pagetable)
+{
+  // there are 2^9 = 512 PTEs in a page table.
+  for(int i = 0; i < 512; i++){
+    pte_t pte = pagetable[i];
+    if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
+      // this PTE points to a lower-level page table.
+      uint64 child = PTE2PA(pte);
+      destroy_S_U_mode_pagetable_for_vm((pagetable_t)child);
+      pagetable[i] = 0;
+    }
+  }
+  kfree((void*)pagetable);
+}
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
@@ -237,7 +252,6 @@ void trap_and_emulate(void) {
 
                             // change mode to M mode
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
-                            return;
                         }
                         // go to s mode
                         else
@@ -262,7 +276,6 @@ void trap_and_emulate(void) {
 
                             // change mode to S mode
                             global_vmm_state.current_privilege_mode = S_MODE_REG;
-                            return;
                         }
                         break;
                     }
@@ -477,7 +490,10 @@ void trap_and_emulate(void) {
     p->pagetable = global_vmm_state.M_mode_pagetable;
 
     // and release all pages of S_U_mode_pagetable
-    // TODO
+    destroy_S_U_mode_pagetable_for_vm(global_vmm_state.S_U_mode_pagetable);
+
+    // reset the VMM state
+    trap_and_emulate_init();
 
     return;
 }
