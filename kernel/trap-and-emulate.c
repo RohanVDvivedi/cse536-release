@@ -158,7 +158,7 @@ void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* dupl
     }
 }
 
-void destroy_S_U_mode_pagetable_for_vm(pagetable_t* pagetable)
+void destroy_S_U_mode_pagetable_for_vm(pagetable_t pagetable)
 {
   // there are 2^9 = 512 PTEs in a page table.
   for(int i = 0; i < 512; i++){
@@ -202,7 +202,7 @@ void trap_and_emulate(void) {
     if(global_vmm_state.M_mode_pagetable == NULL && global_vmm_state.S_U_mode_pagetable == NULL)
     {
         global_vmm_state.M_mode_pagetable = p->pagetable;
-        duplicate_pagetable(&(global_vmm_state.M_mode_pagetable), &(global_vmm_state.S_U_mode_pagetable));
+        duplicate_pagetable_for_vm(&(global_vmm_state.M_mode_pagetable), &(global_vmm_state.S_U_mode_pagetable));
     }
 
     // if not a system opcode
