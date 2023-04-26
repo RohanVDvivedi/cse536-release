@@ -99,6 +99,9 @@ struct vm_virtual_state {
     struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
 
     int current_privilege_mode;
+
+    pagetable_t M_mode_pagetable;
+    pagetable_t S_U_mode_pagetable;
 };
 
 vm_reg* get_register_by_code(vm_virtual_state* vvs, int code)
@@ -499,5 +502,7 @@ void trap_and_emulate_init(void) {
             {.code = 0x34b, .val = 0},
         },
         .current_privilege_mode = M_MODE_REG,
+        .M_mode_pagetable = NULL,
+        .S_U_mode_pagetable = NULL,
     };
 }
