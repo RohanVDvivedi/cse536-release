@@ -166,6 +166,10 @@ void trap_and_emulate(void) {
     printf("(PI at %p) op = %x, rd = %x, funct3 = %x, rs1 = %x, uimm = %x\n", 
                 virt_addr_instr, op, rd, funct3, rs1, uimm);
 
+    // if it is the first instruction, then set the M mode pagetable
+    if(global_vmm_state.M_mode_pagetable == NULL && global_vmm_state.S_U_mode_pagetable == NULL)
+        global_vmm_state.M_mode_pagetable = p->pagetable;
+
     // if not a system opcode
     if(op != SYSTEM)
     {
