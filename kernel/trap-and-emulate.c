@@ -141,13 +141,10 @@ vm_virtual_state global_vmm_state;
 #define SRET   0x102
 #define MRET   0x302
 
-#define VM_MEM_VA_START 0x80000000ULL
-#define VM_MEM_SIZE 1024ULL * PGSIZE
-
 void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* duplicate)
 {
     *duplicate = uvmcreate();
-    for(uint64 va = VM_MEM_VA_START; va < VM_MEM_VA_START + VM_MEM_SIZE; va+= PGSIZE)
+    for(uint64 va = 0; va < MAXVA; va+= PGSIZE)
     {
         pte_t * pa_pte = walk(*to_be_duplicated, va, 0);
         if(pa_pte == 0)
