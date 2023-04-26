@@ -252,6 +252,9 @@ void trap_and_emulate(void) {
 
                             // change mode to M mode
                             global_vmm_state.current_privilege_mode = M_MODE_REG;
+
+                            // set pagetable to M_mode page table
+                            p->pagetable = global_vmm_state.M_mode_pagetable;
                         }
                         // go to s mode
                         else
@@ -276,6 +279,9 @@ void trap_and_emulate(void) {
 
                             // change mode to S mode
                             global_vmm_state.current_privilege_mode = S_MODE_REG;
+
+                            // set pagetable to S_U_mode page table
+                            p->pagetable = global_vmm_state.S_U_mode_pagetable;
                         }
                         break;
                     }
@@ -305,6 +311,9 @@ void trap_and_emulate(void) {
 
                         // update the current privilege mode
                         global_vmm_state.current_privilege_mode = new_priv_mode;
+
+                        // set pagetable based on current_privilege_mode
+                        p->pagetable = (global_vmm_state.current_privilege_mode == M_MODE_REG) ? global_vmm_state.M_mode_pagetable : global_vmm_state.S_U_mode_pagetable;
                         break;
                     }
                     case MRET :
@@ -334,6 +343,8 @@ void trap_and_emulate(void) {
                         // update the current privilege mode
                         global_vmm_state.current_privilege_mode = new_priv_mode;
 
+                        // set pagetable based on current_privilege_mode
+                        p->pagetable = (global_vmm_state.current_privilege_mode == M_MODE_REG) ? global_vmm_state.M_mode_pagetable : global_vmm_state.S_U_mode_pagetable;
                         break;
                     }
                     default :
