@@ -160,7 +160,7 @@ void trap_and_emulate(void) {
     uint32 rd       = ((instr >>  7) & ((1 <<  5) - 1));
     uint32 funct3   = ((instr >> 12) & ((1 <<  3) - 1));
     uint32 rs1      = ((instr >> 15) & ((1 <<  5) - 1));
-    uint32 uimm    = ((instr >> 20) & ((1 << 12) - 1));
+    uint32 uimm     = ((instr >> 20) & ((1 << 12) - 1));
 
     /* Print the statement */
     printf("(PI at %p) op = %x, rd = %x, funct3 = %x, rs1 = %x, uimm = %x\n", 
