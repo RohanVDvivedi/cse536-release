@@ -141,6 +141,23 @@ vm_virtual_state global_vmm_state;
 #define SRET   0x102
 #define MRET   0x302
 
+#define VM_MEM_VA_START 0x80000000ULL
+#define VM_MEM_SIZE 1024ULL * PGSIZE
+
+void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* duplicate)
+{
+    *duplicate = uvmcreate();
+    for(uint64 va = VM_MEM_VA_START; va < VM_MEM_VA_START + VM_MEM_SIZE; va+= PGSIZE)
+    {
+        pte_t * pa_pte = walk(*to_be_duplicated, va, 0);
+        if(pa_pte == 0)
+            continue;
+        uint64 pa = PTE2PA(*pa_pte);
+        int perm = PTE_FLAGS(*pa_pte);
+        mappages(*duplicate, va, PGSIZE, pa, perm);
+    }
+}
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
@@ -168,7 +185,10 @@ void trap_and_emulate(void) {
 
     // if it is the first instruction, then set the M mode pagetable
     if(global_vmm_state.M_mode_pagetable == NULL && global_vmm_state.S_U_mode_pagetable == NULL)
+    {
         global_vmm_state.M_mode_pagetable = p->pagetable;
+        duplicate_pagetable(&(global_vmm_state.M_mode_pagetable), &(global_vmm_state.S_U_mode_pagetable));
+    }
 
     // if not a system opcode
     if(op != SYSTEM)
