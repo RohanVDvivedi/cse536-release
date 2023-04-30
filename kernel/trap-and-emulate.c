@@ -279,6 +279,18 @@ void trap_and_emulate_ecall(void) {
     return;
 }
 
+static void illegal_instruction_in_usermode(void)
+{
+    /* Current process struct */
+    struct proc *p = myproc();
+
+    p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+
+    get_register_by_code(&global_vmm_state, SEPC)->val = r_sepc();
+
+    get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
+}
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
@@ -328,6 +340,13 @@ void trap_and_emulate(void) {
                 {
                     case SRET :
                     {
+                        // forward it to guest VM's handler
+                        if(global_vmm_state.current_privilege_mode == U_MODE_REG)
+                        {
+                            illegal_instruction_in_usermode();
+                            break;
+                        }
+
                         if(global_vmm_state.current_privilege_mode != S_MODE_REG)
                         {
                             setkilled(p);
@@ -359,6 +378,13 @@ void trap_and_emulate(void) {
                     }
                     case MRET :
                     {
+                        // forward it to guest VM's handler
+                        if(global_vmm_state.current_privilege_mode == U_MODE_REG)
+                        {
+                            illegal_instruction_in_usermode();
+                            break;
+                        }
+
                         if(global_vmm_state.current_privilege_mode != M_MODE_REG)
                         {
                             setkilled(p);
@@ -405,10 +431,15 @@ void trap_and_emulate(void) {
         case CSRRW :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
@@ -428,10 +459,15 @@ void trap_and_emulate(void) {
         case CSRRS :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
@@ -449,10 +485,15 @@ void trap_and_emulate(void) {
         case CSRRC :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
@@ -470,10 +511,15 @@ void trap_and_emulate(void) {
         case CSRRWI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
@@ -487,10 +533,15 @@ void trap_and_emulate(void) {
         case CSRRSI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
@@ -504,10 +555,15 @@ void trap_and_emulate(void) {
         case CSRRCI :
         {
             vm_reg* csr_p = get_register_by_code(&global_vmm_state, uimm);
-            if(csr_p == NULL || global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            if(csr_p == NULL)
             {
                 setkilled(p);
                 goto PROCESS_KILLED;
+            }
+            if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
+            {
+                illegal_instruction_in_usermode();
+                break;
             }
             if(rd != 0)
             {
