@@ -50,10 +50,14 @@ usertrap(void)
   // save user program counter.
   p->trapframe->epc = r_sepc();
 
-  // r_scause of 2 implies an illegal instruction, 8 implies an ecall called from vm
+  // r_scause of 8 implies an ecall called from vm
+  if(r_scause() == 8 && memcmp(p->name, "vm-", 3) == 0)
+    trap_and_emulate_ecall(); // trap and emulate ecall will increment epc
+  else
+  // r_scause of 2 implies an illegal instruction
   // in our case a machine mode or supervisor mode instruction being executed in user mode
-  if((r_scause() == 2 || r_scause() == 8) && memcmp(p->name, "vm-", 3) == 0)
-    trap_and_emulate(); // trap and execute will increment epc
+  if(r_scause() == 2 && memcmp(p->name, "vm-", 3) == 0)
+    trap_and_emulate(); // trap and emulate will increment epc
   else
   if(r_scause() == 8){
     // system call

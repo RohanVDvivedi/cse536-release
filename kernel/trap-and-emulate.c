@@ -173,6 +173,112 @@ void destroy_S_U_mode_pagetable_for_vm(pagetable_t pagetable, int l)
   kfree((void*)pagetable);
 }
 
+void trap_and_emulate_ecall(void) {
+    /* Current process struct */
+    struct proc *p = myproc();
+
+    // get virtual address of the faulting instruction
+    uint64 virt_addr_instr = r_sepc();
+    // physical address of the faulting instruction
+    uint64 phy_addr_instr = walkaddr(p->pagetable, virt_addr_instr) | (virt_addr_instr & ((1 << 12) - 1));
+
+    // faulting instruction
+    uint32 instr = *((uint32*)(phy_addr_instr));
+
+    // all system instructions are I-type instructions
+    uint32 op       = ((instr >>  0) & ((1 <<  7) - 1));
+    uint32 rd       = ((instr >>  7) & ((1 <<  5) - 1));
+    uint32 funct3   = ((instr >> 12) & ((1 <<  3) - 1));
+    uint32 rs1      = ((instr >> 15) & ((1 <<  5) - 1));
+    uint32 uimm     = ((instr >> 20) & ((1 << 12) - 1));
+
+    if(op == SYSTEM && rd == 0 && funct3 == 0 && rs1 == 0 && uimm == 0)
+    {
+        printf("(EC at %p)\n", p->trapframe->epc);
+
+        int go_to_machine_mode = 1;
+        if( (global_vmm_state.current_privilege_mode == S_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 1) & 1) ||
+            (global_vmm_state.current_privilege_mode == U_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 3) & 1) )
+            go_to_machine_mode = 0;
+
+        // go to m mode
+        if(go_to_machine_mode)
+        {
+            // move pc to mepc and mtvec to pc
+            get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
+            p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
+
+            // set mcause register
+            get_register_by_code(&global_vmm_state, MCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
+
+            // move MIE bit to MPIE bit and clear MIE bit
+            vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
+            uint64 MIE_bit = mstatus_p->val & MIE_FL;
+            mstatus_p->val &= (~MIE_FL);
+            mstatus_p->val &= (~MPIE_FL);
+            mstatus_p->val |= (MIE_bit << 4);
+
+            // make MPP = 01 (s mode)
+            mstatus_p->val &= (~MPP_FL);
+            mstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 11) & MPP_FL);
+
+            // change mode to M mode
+            global_vmm_state.current_privilege_mode = M_MODE_REG;
+
+            // set pagetable to M_mode page table
+            p->pagetable = global_vmm_state.M_mode_pagetable;
+        }
+        // go to s mode
+        else
+        {
+            // move pc to sepc and stvec to pc
+            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
+            p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
+
+            // set scause register
+            get_register_by_code(&global_vmm_state, SCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
+
+            // move SIE bit to SPIE bit, and clear SIE bit
+            vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
+            uint64 SIE_bit = sstatus_p->val & SIE_FL;
+            sstatus_p->val &= (~SIE_FL);
+            sstatus_p->val &= (~SPIE_FL);
+            sstatus_p->val |= (SIE_bit << 4);
+
+            // make SPP = 0 (u mode)
+            sstatus_p->val &= (~SPP_FL);
+            sstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 8) & SPP_FL);
+
+            // change mode to S mode
+            global_vmm_state.current_privilege_mode = S_MODE_REG;
+
+            // set pagetable to S_U_mode page table
+            p->pagetable = global_vmm_state.S_U_mode_pagetable;
+        }
+    }
+    else
+    {
+        setkilled(p);
+        goto PROCESS_KILLED_ecall;
+    }
+
+    return;
+
+    // come here only when the process is killed
+    PROCESS_KILLED_ecall:;
+
+    // set process pge table to M_mode_pagetable
+    p->pagetable = global_vmm_state.M_mode_pagetable;
+
+    // and release all pages of S_U_mode_pagetable
+    destroy_S_U_mode_pagetable_for_vm(global_vmm_state.S_U_mode_pagetable, 2);
+
+    // reset the VMM state
+    trap_and_emulate_init();
+
+    return;
+}
+
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
 
@@ -220,71 +326,6 @@ void trap_and_emulate(void) {
             {
                 switch(uimm)
                 {
-                    case ECALL :
-                    {
-                        printf("(EC at %p)\n", p->trapframe->epc);
-
-                        int go_to_machine_mode = 1;
-                        if( (global_vmm_state.current_privilege_mode == S_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 1) & 1) ||
-                            (global_vmm_state.current_privilege_mode == U_MODE_REG && (get_register_by_code(&global_vmm_state, MEDELEG)->val >> 3) & 1) )
-                            go_to_machine_mode = 0;
-
-                        // go to m mode
-                        if(go_to_machine_mode)
-                        {
-                            // move pc to mepc and mtvec to pc
-                            get_register_by_code(&global_vmm_state, MEPC)->val = p->trapframe->epc;
-                            p->trapframe->epc = get_register_by_code(&global_vmm_state, MTVEC)->val;
-
-                            // set mcause register
-                            get_register_by_code(&global_vmm_state, MCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
-
-                            // move MIE bit to MPIE bit and clear MIE bit
-                            vm_reg* mstatus_p = get_register_by_code(&global_vmm_state, MSTATUS);
-                            uint64 MIE_bit = mstatus_p->val & MIE_FL;
-                            mstatus_p->val &= (~MIE_FL);
-                            mstatus_p->val &= (~MPIE_FL);
-                            mstatus_p->val |= (MIE_bit << 4);
-
-                            // make MPP = 01 (s mode)
-                            mstatus_p->val &= (~MPP_FL);
-                            mstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 11) & MPP_FL);
-
-                            // change mode to M mode
-                            global_vmm_state.current_privilege_mode = M_MODE_REG;
-
-                            // set pagetable to M_mode page table
-                            p->pagetable = global_vmm_state.M_mode_pagetable;
-                        }
-                        // go to s mode
-                        else
-                        {
-                            // move pc to sepc and stvec to pc
-                            get_register_by_code(&global_vmm_state, SEPC)->val = p->trapframe->epc;
-                            p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
-
-                            // set scause register
-                            get_register_by_code(&global_vmm_state, SCAUSE)->val = (global_vmm_state.current_privilege_mode + 8);
-
-                            // move SIE bit to SPIE bit, and clear SIE bit
-                            vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
-                            uint64 SIE_bit = sstatus_p->val & SIE_FL;
-                            sstatus_p->val &= (~SIE_FL);
-                            sstatus_p->val &= (~SPIE_FL);
-                            sstatus_p->val |= (SIE_bit << 4);
-
-                            // make SPP = 0 (u mode)
-                            sstatus_p->val &= (~SPP_FL);
-                            sstatus_p->val |= ((((uint64)global_vmm_state.current_privilege_mode) << 8) & SPP_FL);
-
-                            // change mode to S mode
-                            global_vmm_state.current_privilege_mode = S_MODE_REG;
-
-                            // set pagetable to S_U_mode page table
-                            p->pagetable = global_vmm_state.S_U_mode_pagetable;
-                        }
-                        break;
-                    }
                     case SRET :
                     {
                         if(global_vmm_state.current_privilege_mode != S_MODE_REG)
