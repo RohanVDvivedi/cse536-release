@@ -289,6 +289,8 @@ static void illegal_instruction_in_usermode(void)
     get_register_by_code(&global_vmm_state, SEPC)->val = r_sepc();
 
     get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
+
+    global_vmm_state.current_privilege_mode = S_MODE_REG;
 }
 
 void trap_and_emulate(void) {
