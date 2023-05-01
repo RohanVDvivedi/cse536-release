@@ -18,18 +18,6 @@ int is_readonly(int code)
 #define S_MODE_REG 0b01
 #define M_MODE_REG 0b11
 
-int get_mode(int code)
-{
-    return ((code >> 8) & 0b11);
-}
-
-// Struct to keep VM registers (Sample; feel free to change.)
-typedef struct vm_reg vm_reg;
-struct vm_reg {
-    int     code; // the register's code is enough to get the information about (readable+writable OR readonly) and about (mode in which it is accessible)
-    uint64  val;
-};
-
 // some important register codes
 #define USTATUS 0x000
 #define SSTATUS 0x100
@@ -58,6 +46,20 @@ struct vm_reg {
 #define MPIE_FL (0x1ULL <<  7)
 #define SPP_FL  (0x1ULL <<  8)
 #define MPP_FL  (0x3ULL << 11)
+
+int get_mode(int code)
+{
+    if(code == MVENDORID)
+        return U_MODE_REG;
+    return ((code >> 8) & 0b11);
+}
+
+// Struct to keep VM registers (Sample; feel free to change.)
+typedef struct vm_reg vm_reg;
+struct vm_reg {
+    int     code; // the register's code is enough to get the information about (readable+writable OR readonly) and about (mode in which it is accessible)
+    uint64  val;
+};
 
 // Keep the virtual state of the VM's privileged registers
 typedef struct vm_virtual_state vm_virtual_state;
