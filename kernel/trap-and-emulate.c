@@ -347,7 +347,7 @@ void trap_and_emulate(void) {
     {
         global_vmm_state.M_mode_pagetable = p->pagetable;
         duplicate_pagetable_for_vm(&(global_vmm_state.M_mode_pagetable), &(global_vmm_state.S_U_mode_pagetable));
-        set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, 0, PMP_REGION_START, PMP_REGION_END - PMP_REGION_START);
+        //set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, 0, PMP_REGION_START, PMP_REGION_END - PMP_REGION_START);
     }
 
     // if not a system opcode
