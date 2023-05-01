@@ -657,6 +657,11 @@ void trap_and_emulate(void) {
     if(wirte_to_pmp_regs)
     {
         // unmap regions from 0x80000000  -  0x80400000
+        vm_reg* pmpcfg0 = get_register_by_code(&global_vmm_state, PMPCFG0);
+        vm_reg* pmpaddr0 = get_register_by_code(&global_vmm_state, PMPADDR0);
+        set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, 0, PMP_REGION_START, PMP_REGION_END - PMP_REGION_START);
+        if(((pmpcfg0->val >> 3) & 0x3) == 1)
+            set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, (pmpcfg0->val & 0x7), PMP_REGION_START, pmpaddr0->val - PMP_REGION_START);
     }
 
     // if mvendorid is set to 0, we exit
