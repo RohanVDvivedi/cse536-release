@@ -279,9 +279,8 @@ void trap_and_emulate_ecall(void) {
     return;
 }
 
-static void illegal_instruction_in_usermode(void)
+/*static void illegal_instruction_in_usermode(void)
 {
-    /* Current process struct */
     struct proc *p = myproc();
 
     p->trapframe->epc = get_register_by_code(&global_vmm_state, STVEC)->val;
@@ -291,7 +290,7 @@ static void illegal_instruction_in_usermode(void)
     get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
 
     global_vmm_state.current_privilege_mode = S_MODE_REG;
-}
+}*/
 
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
@@ -441,9 +440,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -469,9 +472,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -495,9 +502,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -521,9 +532,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -543,9 +558,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -565,9 +584,13 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
+                setkilled(p);
+                goto PROCESS_KILLED;
+            }
+            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }
+            }*/
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
