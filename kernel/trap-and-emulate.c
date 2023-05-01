@@ -399,16 +399,16 @@ void trap_and_emulate(void) {
                         vm_reg* sstatus_p = get_register_by_code(&global_vmm_state, SSTATUS);
                         int new_priv_mode = (sstatus_p->val & SPP_FL) >> 8;
 
-                        // set MPP to 0
+                        // set SPP to 0
                         sstatus_p->val &= (~SPP_FL);
 
-                        // move MPIE to MIE and clear MPIE
+                        // move SPIE to SIE and clear SPIE
                         uint64 SPIE_bit = sstatus_p->val & SPIE_FL;
                         sstatus_p->val &= (~SIE_FL);
                         sstatus_p->val &= (~SPIE_FL);
                         sstatus_p->val |= (SPIE_bit >> 4);
 
-                        // move mepc to pc
+                        // move sepc to pc
                         p->trapframe->epc = get_register_by_code(&global_vmm_state, SEPC)->val;
 
                         // update the current privilege mode
