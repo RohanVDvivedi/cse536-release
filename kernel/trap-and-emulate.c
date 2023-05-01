@@ -317,7 +317,7 @@ void trap_and_emulate_ecall(void) {
     return;
 }
 
-/*static void illegal_instruction_in_usermode(void)
+static void illegal_instruction_in_usermode(void)
 {
     struct proc *p = myproc();
 
@@ -328,7 +328,7 @@ void trap_and_emulate_ecall(void) {
     get_register_by_code(&global_vmm_state, SCAUSE)->val = 2;
 
     global_vmm_state.current_privilege_mode = S_MODE_REG;
-}*/
+}
 
 void trap_and_emulate(void) {
     /* Comes here when a VM tries to execute a supervisor instruction. */
