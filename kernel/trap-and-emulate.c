@@ -383,11 +383,11 @@ void trap_and_emulate(void) {
                     case SRET :
                     {
                         // forward it to guest VM's handler
-                        /*if(global_vmm_state.current_privilege_mode == U_MODE_REG)
+                        if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
                             illegal_instruction_in_usermode();
                             break;
-                        }*/
+                        }
 
                         if(global_vmm_state.current_privilege_mode != S_MODE_REG)
                         {
@@ -421,12 +421,11 @@ void trap_and_emulate(void) {
                     case MRET :
                     {
                         // forward it to guest VM's handler
-                        /*
                         if(global_vmm_state.current_privilege_mode == U_MODE_REG)
                         {
                             illegal_instruction_in_usermode();
                             break;
-                        }*/
+                        }
 
                         if(global_vmm_state.current_privilege_mode != M_MODE_REG)
                         {
@@ -481,13 +480,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -514,13 +509,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -545,13 +536,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -576,13 +563,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -603,13 +586,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
@@ -630,13 +609,9 @@ void trap_and_emulate(void) {
             }
             if(global_vmm_state.current_privilege_mode < get_mode(csr_p->code)) // not emulating the requested csr register OR have lower privilege than what is required by the register
             {
-                setkilled(p);
-                goto PROCESS_KILLED;
-            }
-            /*{
                 illegal_instruction_in_usermode();
                 break;
-            }*/
+            }
             if(rd != 0)
             {
                 uint64* rd_p = get_nth_unpriv_register_from_trapframe(p, rd);
