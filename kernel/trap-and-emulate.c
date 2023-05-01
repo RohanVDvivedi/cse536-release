@@ -150,18 +150,32 @@ vm_virtual_state global_vmm_state;
 #define SRET   0x102
 #define MRET   0x302
 
+void duplicate_pagetable_for_vm_RECURSIVE(pagetable_t to_be_duplicated, pagetable_t duplicate, int level)
+{
+    if(level == 0)
+    {
+        memmove(duplicate, to_be_duplicated, PGSIZE);
+        return;
+    }
+    for(int i = 0; i < 512; i++)
+    {
+        pte_t pte = to_be_duplicated[i];
+        if(pte & PTE_V)
+        {
+            void* new_child = kalloc();
+            memset(new_child, 0, PGSIZE);
+            uint64 new_child_addr = (uint64) new_child;
+            int perm = pte & (PTE_R | PTE_W | PTE_W | PTE_U);
+            duplicate[i] = PA2PTE(new_child_addr) | perm | PTE_V;
+            duplicate_pagetable_for_vm_RECURSIVE((pagetable_t) PTE2PA(to_be_duplicated[i]), (pagetable_t) PTE2PA(duplicate[i]), level - 1);
+        }
+    }
+}
+
 void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* duplicate)
 {
     *duplicate = uvmcreate();
-    for(uint64 va = 0; va < MAXVA; va+= PGSIZE)
-    {
-        pte_t * pa_pte = walk(*to_be_duplicated, va, 0);
-        if(pa_pte == 0)
-            continue;
-        uint64 pa = PTE2PA(*pa_pte);
-        int perm = PTE_FLAGS(*pa_pte);
-        mappages(*duplicate, va, PGSIZE, pa, perm);
-    }
+    duplicate_pagetable_for_vm_RECURSIVE(*to_be_duplicated, *duplicate, 2);
 }
 
 void destroy_S_U_mode_pagetable_for_vm(pagetable_t pagetable, int l)
