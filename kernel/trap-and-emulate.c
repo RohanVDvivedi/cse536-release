@@ -354,6 +354,8 @@ void trap_and_emulate(void) {
         goto PROCESS_KILLED;
     }
 
+    int wirte_to_pmp_regs = 0;
+
     switch(funct3)
     {
         case ECALL_EBREAK_SRET_MRET :
@@ -482,6 +484,7 @@ void trap_and_emulate(void) {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val = (*rs1_p);
             }
+            wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             p->trapframe->epc += 4;
             break;
         }
@@ -511,6 +514,7 @@ void trap_and_emulate(void) {
             {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val |= (*rs1_p);
+                wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             }
             p->trapframe->epc += 4;
             break;
@@ -541,6 +545,7 @@ void trap_and_emulate(void) {
             {
                 uint64* rs1_p = get_nth_unpriv_register_from_trapframe(p, rs1);
                 csr_p->val &= (~(*rs1_p));
+                wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             }
             p->trapframe->epc += 4;
             break;
@@ -568,6 +573,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val = rs1;
+            wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             p->trapframe->epc += 4;
             break;
         }
@@ -594,6 +600,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val |= rs1;
+            wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             p->trapframe->epc += 4;
             break;
         }
@@ -620,6 +627,7 @@ void trap_and_emulate(void) {
                 *rd_p = csr_p->val;
             }
             csr_p->val &= (~rs1);
+            wirte_to_pmp_regs = (uimm == PMPCFG0) || (uimm == PMPADDR0);
             p->trapframe->epc += 4;
             break;
         }
@@ -628,6 +636,11 @@ void trap_and_emulate(void) {
             setkilled(p);
             goto PROCESS_KILLED;
         }
+    }
+
+    if(wirte_to_pmp_regs)
+    {
+        // unmap regions from 0x80000000  -  0x80400000
     }
 
     // if mvendorid is set to 0, we exit
