@@ -150,6 +150,10 @@ vm_virtual_state global_vmm_state;
 #define SRET   0x102
 #define MRET   0x302
 
+// pmp enabled regions in guest's address space
+#define PMP_REGION_START 0x80000000
+#define PMP_REGION_END   0x80400000
+
 void duplicate_pagetable_for_vm_RECURSIVE(pagetable_t to_be_duplicated, pagetable_t duplicate, int level)
 {
     if(level == 0)
@@ -176,6 +180,17 @@ void duplicate_pagetable_for_vm(pagetable_t* to_be_duplicated, pagetable_t* dupl
 {
     *duplicate = uvmcreate();
     duplicate_pagetable_for_vm_RECURSIVE(*to_be_duplicated, *duplicate, 2);
+}
+
+void set_permissions_in_pagetable(pagetable_t pt, int perm, uint64 start_va, uint64 size)
+{
+    for(uint64 va = start_va; va < (start_va + size); va += PGSIZE)
+    {
+        pte_t * pte_p = walk(pt, va, 0);
+        if(pte_p == NULL)
+            continue;
+        (*pte_p) = ((*pte_p) & ( ~(PTE_R | PTE_W | PTE_X) )) | perm;
+    }
 }
 
 void destroy_S_U_mode_pagetable_for_vm(pagetable_t pagetable, int l)
