@@ -723,7 +723,7 @@ void trap_and_emulate_init(void) {
 
             // Machine memory protection registers
             {.code = 0x3a0, .val = 0},
-            {.code = 0x3b1, .val = 0},
+            {.code = 0x3b0, .val = 0},
         },
         .current_privilege_mode = M_MODE_REG,
         .M_mode_pagetable = NULL,
