@@ -39,6 +39,9 @@ int is_readonly(int code)
 
 #define MVENDORID 0xf11
 
+#define PMPCFG0  0x3a0
+#define PMPADDR0 0x3b0
+
 // status bits
 #define SIE_FL  (0x1ULL <<  1)
 #define MIE_FL  (0x1ULL <<  3)
@@ -96,7 +99,11 @@ struct vm_virtual_state {
     #define MACHINE_TRAP_HANDLING_REGS_COUNT 7
     #define MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET (MACHINE_TRAP_SETUP_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_SETUP_REGS_COUNT)
 
-    #define TOTAL_REGS_IN_STATE (MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_HANDLING_REGS_COUNT)
+    // Machine memory protection
+    #define MACHINE_MEMORY_PROTECTION_REGS_COUNT 2
+    #define MACHINE_MEMORY_PROTECTION_REGS_STATE_STRUCT_OFFSET (MACHINE_TRAP_HANDLING_REGS_STATE_STRUCT_OFFSET + MACHINE_TRAP_HANDLING_REGS_COUNT)
+
+    #define TOTAL_REGS_IN_STATE (MACHINE_MEMORY_PROTECTION_REGS_STATE_STRUCT_OFFSET + MACHINE_MEMORY_PROTECTION_REGS_STATE_STRUCT_OFFSET)
 
     struct vm_reg vm_regs[TOTAL_REGS_IN_STATE];
 
@@ -690,6 +697,10 @@ void trap_and_emulate_init(void) {
             {.code = 0x344, .val = 0},
             {.code = 0x34a, .val = 0},
             {.code = 0x34b, .val = 0},
+
+            // Machine memory protection registers
+            {.code = 0x3a0, .val = 0},
+            {.code = 0x3b1, .val = 0},
         },
         .current_privilege_mode = M_MODE_REG,
         .M_mode_pagetable = NULL,
