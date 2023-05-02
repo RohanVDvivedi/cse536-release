@@ -6,8 +6,8 @@
 #include "proc.h"
 #include "defs.h"
 
-// intial mvendorid = "cse536" => 63 73 65 35 33 36
-#define INTIAL_MVENDORID 0x637365353336
+// intial mvendorid = "cse536" => 0xC5E536
+#define INTIAL_MVENDORID 0xC5E536
 
 int is_readonly(int code)
 {
@@ -641,7 +641,7 @@ void trap_and_emulate_init(void) {
             {.code = 0x180, .val = 0},
 
             // Machine information registers
-            {.code = 0xf11, .val = INTIAL_MVENDORID}, // intial mvendorid = "cse536" => 63 73 65 35 33 36
+            {.code = 0xf11, .val = INTIAL_MVENDORID}, // intial mvendorid = "cse536" => 0xC5E536
             {.code = 0xf12, .val = 0},
             {.code = 0xf13, .val = 0},
             {.code = 0xf14, .val = 0},
