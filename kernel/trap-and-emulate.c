@@ -579,7 +579,7 @@ void trap_and_emulate(void) {
         vm_reg* pmpaddr0 = get_register_by_code(&global_vmm_state, PMPADDR0);
         set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, 0, PMP_REGION_START, PMP_REGION_END - PMP_REGION_START);
         if(((pmpcfg0->val >> 3) & 0x3) == 1)
-            set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, (pmpcfg0->val & 0x7), PMP_REGION_START, pmpaddr0->val - PMP_REGION_START);
+            set_permissions_in_pagetable(global_vmm_state.S_U_mode_pagetable, (pmpcfg0->val & 0x7), PMP_REGION_START, (pmpaddr0->val << 2) - PMP_REGION_START);
     }
 
     // if mvendorid is set to 0, we exit
